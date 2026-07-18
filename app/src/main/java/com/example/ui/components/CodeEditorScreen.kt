@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -23,6 +24,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -68,9 +71,12 @@ fun CodeEditorScreen(
     val terminalInputText by viewModel.terminalInput.collectAsState()
     val aiInputText by viewModel.aiInputText.collectAsState()
 
+    val isSidebarCollapsed by viewModel.isSidebarCollapsed.collectAsState()
+    val isDarkMode by viewModel.isDarkMode.collectAsState()
+    var isShortcutsDialogOpen by remember { mutableStateOf(false) }
+
     val coroutineScope = rememberCoroutineScope()
     var isTerminalMaximized by remember { mutableStateOf(false) }
-    var isSidebarCollapsed by remember { mutableStateOf(false) }
 
     // Dialog fields
     var isNewFileDialogOpen by remember { mutableStateOf(false) }
@@ -101,7 +107,7 @@ fun CodeEditorScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .background(VsBackground)
+                .background(if (isDarkMode) VsBackground else Color(0xFFF5F5F5))
         ) {
             // 1. VS Code Side Activity Bar (Navigation Rail)
             ActivityBar(
@@ -109,12 +115,15 @@ fun CodeEditorScreen(
                 isCollapsed = isSidebarCollapsed,
                 onTabSelect = { tab ->
                     if (activeTab == tab && !isSidebarCollapsed) {
-                        isSidebarCollapsed = true
+                        viewModel.setSidebarCollapsed(true)
                     } else {
-                        isSidebarCollapsed = false
+                        viewModel.setSidebarCollapsed(false)
                         viewModel.selectSidebarTab(tab)
                     }
-                }
+                },
+                viewModel = viewModel,
+                isDarkMode = isDarkMode,
+                onSettingsClick = { isShortcutsDialogOpen = true }
             )
 
             // 2. Folding Sidebar Content Panel
@@ -127,8 +136,8 @@ fun CodeEditorScreen(
                     modifier = Modifier
                         .width(320.dp)
                         .fillMaxHeight()
-                        .background(VsSidebarBackground)
-                        .border(1.dp, Color(0xFF252526))
+                        .background(if (isDarkMode) VsSidebarBackground else Color(0xFFF0F0F0))
+                        .border(1.dp, if (isDarkMode) Color(0xFF252526) else Color(0xFFDDDDDD))
                 ) {
                     when (activeTab) {
                         SidebarTab.Explorer -> {
@@ -213,6 +222,12 @@ fun CodeEditorScreen(
                                 syncStatus = syncMessage,
                                 onSyncTrigger = { viewModel.triggerCloudSync() }
                             )
+                        }
+                        SidebarTab.Search -> {
+                            SearchAndReplacePanel(viewModel = viewModel)
+                        }
+                        SidebarTab.Git -> {
+                            GitSourceControlPanel(viewModel = viewModel)
                         }
                     }
                 }
@@ -330,7 +345,8 @@ fun CodeEditorScreen(
                             CodeWorkspaceTextEditor(
                                 codeText = editorText,
                                 language = activeFile?.language ?: "txt",
-                                onValueChange = { viewModel.updateCodeText(it) }
+                                onValueChange = { viewModel.updateCodeText(it) },
+                                viewModel = viewModel
                             )
                         } else {
                             Box(
@@ -592,19 +608,29 @@ fun CodeEditorScreen(
             containerColor = VsSidebarBackground
         )
     }
+
+    if (isShortcutsDialogOpen) {
+        KeyboardShortcutsConfigDialog(
+            viewModel = viewModel,
+            onDismiss = { isShortcutsDialogOpen = false }
+        )
+    }
 }
 
 @Composable
 fun ActivityBar(
     activeTab: SidebarTab,
     isCollapsed: Boolean,
-    onTabSelect: (SidebarTab) -> Unit
+    onTabSelect: (SidebarTab) -> Unit,
+    viewModel: CodeEditorViewModel,
+    isDarkMode: Boolean,
+    onSettingsClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxHeight()
             .width(55.dp)
-            .background(VsDarkerGrey)
+            .background(if (isDarkMode) VsDarkerGrey else Color(0xFFE5E5E5))
             .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
@@ -618,6 +644,18 @@ fun ActivityBar(
                 selected = activeTab == SidebarTab.Explorer && !isCollapsed,
                 onClick = { onTabSelect(SidebarTab.Explorer) },
                 tag = "explorer_tab"
+            )
+            ActivityBarIcon(
+                imageVector = Icons.Filled.Search,
+                selected = activeTab == SidebarTab.Search && !isCollapsed,
+                onClick = { onTabSelect(SidebarTab.Search) },
+                tag = "search_tab"
+            )
+            ActivityBarIcon(
+                imageVector = Icons.Filled.AccountTree,
+                selected = activeTab == SidebarTab.Git && !isCollapsed,
+                onClick = { onTabSelect(SidebarTab.Git) },
+                tag = "git_tab"
             )
             ActivityBarIcon(
                 imageVector = Icons.Filled.AutoAwesome,
@@ -645,12 +683,30 @@ fun ActivityBar(
             )
         }
 
-        Icon(
-            imageVector = Icons.Filled.Settings,
-            contentDescription = "Settings Icon Toggle",
-            tint = Color.Gray,
-            modifier = Modifier.size(22.dp)
-        )
+        // Bottom section containing Theme Toggle and Settings Gear
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Icon(
+                imageVector = if (isDarkMode) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                contentDescription = "Toggle Theme Mode",
+                tint = Color.Gray,
+                modifier = Modifier
+                    .size(22.dp)
+                    .clickable { viewModel.toggleDarkMode() }
+                    .testTag("theme_toggle_button")
+            )
+            Icon(
+                imageVector = Icons.Filled.Settings,
+                contentDescription = "Configure keyboard shortcuts",
+                tint = Color.Gray,
+                modifier = Modifier
+                    .size(22.dp)
+                    .clickable { onSettingsClick() }
+                    .testTag("settings_button")
+            )
+        }
     }
 }
 
@@ -1308,7 +1364,8 @@ fun CloudSyncPanel(
 fun CodeWorkspaceTextEditor(
     codeText: String,
     language: String,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit,
+    viewModel: CodeEditorViewModel
 ) {
     var textFieldValueState by remember(codeText) {
         val highlighted = CodeHighlighter.highlightCode(codeText, language)
@@ -1324,6 +1381,10 @@ fun CodeWorkspaceTextEditor(
     val lineScrollState = rememberScrollState()
     val editorScrollState = rememberScrollState()
 
+    var editorFontSize by remember { mutableStateOf(13.sp) }
+    val isDarkMode by viewModel.isDarkMode.collectAsState()
+    val shortcuts by viewModel.customShortcuts.collectAsState()
+
     // Line scroll matches editor scroll layout
     LaunchedEffect(editorScrollState.value) {
         lineScrollState.scrollTo(editorScrollState.value)
@@ -1332,14 +1393,22 @@ fun CodeWorkspaceTextEditor(
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .background(VsBackground)
+            .background(if (isDarkMode) VsBackground else Color(0xFFF9F9F9))
+            .pointerInput(Unit) {
+                detectTransformGestures { _, _, zoom, _ ->
+                    if (zoom != 1f) {
+                        val nextSize = (editorFontSize.value * zoom).coerceIn(10f, 30f)
+                        editorFontSize = nextSize.sp
+                    }
+                }
+            }
     ) {
         // Line Numbers List column
         Column(
             modifier = Modifier
                 .width(42.dp)
                 .fillMaxHeight()
-                .background(VsSidebarBackground)
+                .background(if (isDarkMode) VsSidebarBackground else Color(0xFFEBEBEB))
                 .verticalScroll(lineScrollState)
                 .padding(vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -1347,10 +1416,10 @@ fun CodeWorkspaceTextEditor(
             for (i in 1..lines.size) {
                 Text(
                     text = "$i",
-                    color = Color.DarkGray,
+                    color = if (isDarkMode) Color.DarkGray else Color.Gray,
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 13.sp,
-                    lineHeight = 20.sp,
+                    fontSize = editorFontSize,
+                    lineHeight = (editorFontSize.value * 1.5f).sp,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -1360,10 +1429,10 @@ fun CodeWorkspaceTextEditor(
             modifier = Modifier
                 .fillMaxHeight()
                 .width(1.dp),
-            color = Color(0xFF191919)
+            color = if (isDarkMode) Color(0xFF191919) else Color(0xFFDCDCDC)
         )
 
-        // Actual editor content box
+        // Actual editor content box with preview hardware key event listeners
         BasicTextField(
             value = textFieldValueState,
             onValueChange = { newValue ->
@@ -1375,18 +1444,85 @@ fun CodeWorkspaceTextEditor(
                 }
             },
             textStyle = TextStyle(
-                color = Color.LightGray,
+                color = if (isDarkMode) Color.LightGray else Color(0xFF222222),
                 fontFamily = FontFamily.Monospace,
-                fontSize = 13.sp,
-                lineHeight = 20.sp
+                fontSize = editorFontSize,
+                lineHeight = (editorFontSize.value * 1.5f).sp
             ),
-            cursorBrush = androidx.compose.ui.graphics.SolidColor(Color.White),
+            cursorBrush = androidx.compose.ui.graphics.SolidColor(if (isDarkMode) Color.White else Color.Black),
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(editorScrollState)
+                .onPreviewKeyEvent { event ->
+                    handleKeyboardShortcut(event, shortcuts) { cmdId ->
+                        viewModel.triggerShortcutCommand(cmdId)
+                    }
+                }
                 .padding(12.dp)
                 .testTag("submit_button")
         )
+    }
+}
+
+fun handleKeyboardShortcut(
+    event: KeyEvent,
+    shortcuts: List<com.example.ui.viewmodel.CodeEditorViewModel.CustomShortcut>,
+    onTrigger: (String) -> Unit
+): Boolean {
+    if (event.type != KeyEventType.KeyDown) return false
+    for (sc in shortcuts) {
+        val composeKey = getComposeKeyFromString(sc.currentKey) ?: continue
+        if (event.key == composeKey &&
+            event.isCtrlPressed == sc.ctrlRequired &&
+            event.isAltPressed == sc.altRequired &&
+            event.isShiftPressed == sc.shiftRequired
+        ) {
+            onTrigger(sc.id)
+            return true
+        }
+    }
+    return false
+}
+
+fun getComposeKeyFromString(char: String): Key? {
+    return when (char.uppercase()) {
+        "A" -> Key.A
+        "B" -> Key.B
+        "C" -> Key.C
+        "D" -> Key.D
+        "E" -> Key.E
+        "F" -> Key.F
+        "G" -> Key.G
+        "H" -> Key.H
+        "I" -> Key.I
+        "J" -> Key.J
+        "K" -> Key.K
+        "L" -> Key.L
+        "M" -> Key.M
+        "N" -> Key.N
+        "O" -> Key.O
+        "P" -> Key.P
+        "Q" -> Key.Q
+        "R" -> Key.R
+        "S" -> Key.S
+        "T" -> Key.T
+        "U" -> Key.U
+        "V" -> Key.V
+        "W" -> Key.W
+        "X" -> Key.X
+        "Y" -> Key.Y
+        "Z" -> Key.Z
+        "0" -> Key.Zero
+        "1" -> Key.One
+        "2" -> Key.Two
+        "3" -> Key.Three
+        "4" -> Key.Four
+        "5" -> Key.Five
+        "6" -> Key.Six
+        "7" -> Key.Seven
+        "8" -> Key.Eight
+        "9" -> Key.Nine
+        else -> null
     }
 }
 
