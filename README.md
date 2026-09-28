@@ -1,206 +1,152 @@
 <!--
   KONKRED Dev — Android Agentic Code Editor
-  FACTORY FLOOR theme · Black #0A0908 · Red #D60019 · Ink #F4F1EB
-  Type: Archivo Black (display) · JetBrains Mono (machine)
+  FACTORY FLOOR system · Black #0A0908 · Signal Red #D60019 · Ink #F4F1EB
 
-  Built for Android engineering velocity.
-  Red means signal, not danger.
+  Visual language: the K cube is the KONKRED mark — a compact machine for
+  turning intent into executable code. All artwork lives in ./assets.
 -->
 
 <div align="center">
 
-<svg xmlns="http://www.w3.org/2000/svg" width="240" height="280" viewBox="0 0 240 280" fill="none">
-  <defs>
-    <linearGradient id="kgradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#d60019;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#ff1a2e;stop-opacity:0.8" />
-    </linearGradient>
-    <filter id="kglow">
-      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
-
-  <rect width="240" height="280" fill="#0A0908"/>
-
-  <g opacity="0.96">
-    <polygon points="60,90 60,170 120,210 120,130" fill="#151412" stroke="url(#kgradient)" stroke-width="2"/>
-    <polygon points="60,90 120,50 180,90 120,130" fill="url(#kgradient)" stroke="#d60019" stroke-width="2"/>
-    <polygon points="120,130 180,90 180,170 120,210" fill="#d60019" opacity="0.96" stroke="#ff1a2e" stroke-width="2"/>
-  </g>
-
-  <text x="120" y="162" font-size="74" font-weight="900" font-family="Arial Black, sans-serif" fill="#F4F1EB" text-anchor="middle" filter="url(#kglow)">K</text>
-
-  <line x1="60" y1="110" x2="180" y2="110" stroke="#d60019" stroke-width="1" opacity="0.45"/>
-  <line x1="120" y1="50" x2="120" y2="130" stroke="#ff1a2e" stroke-width="1.5" opacity="0.7"/>
-  <line x1="180" y1="90" x2="180" y2="170" stroke="#ff1a2e" stroke-width="1.5" opacity="0.7"/>
-</svg>
+<a href="https://github.com/reARbitRA/KonkredDev-Android">
+  <img src="./assets/header.svg" alt="KONKRED Dev — Android Agentic Code Editor" width="100%">
+</a>
 
 <br>
 
-# KONKRED Dev
-## Android Agentic Code Editor
-
-<p>
-  <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-100%25-7F52FF?logo=kotlin&logoColor=white" />
-  <img alt="Android" src="https://img.shields.io/badge/Android-Agentic-D60019?logo=android&logoColor=white" />
-  <img alt="Editor" src="https://img.shields.io/badge/Code-Editor-0A0908?logo=code&logoColor=F4F1EB" />
-  <img alt="AI" src="https://img.shields.io/badge/AI%20Agent-Live-F4F1EB?logo=sparkles&logoColor=D60019" />
-</p>
-
-<sub>An advanced agentic code editor for Android development. Human intent, machine execution.</sub>
+<a href="https://github.com/reARbitRA/KonkredDev-Android"><img src="./assets/badge-repo.svg" alt="KonkredDev Android repository" height="30"></a>
+<a href="https://github.com/reARbitRA"><img src="./assets/badge-kotlin.svg" alt="Kotlin" height="30"></a>
+<a href="https://developer.android.com/studio"><img src="./assets/badge-android.svg" alt="Android Studio" height="30"></a>
 
 </div>
 
-<img src="https://raw.githubusercontent.com/reARbitRA/reARbitRA/main/assets/divider.svg" alt="" width="100%">
+<img src="./assets/divider.svg" alt="" width="100%">
 
-## The machine
+<img src="./assets/metrics.svg" alt="Agentic Android editor · Kotlin · Compose · Gemini" width="100%">
 
-KONKRED Dev is a next-generation Android editor designed for one purpose: turning developer intent into reliable, production-ready Kotlin code without wasting cycles on boilerplate. It is built around the idea of a live coding agent—one that understands your project, your patterns, and your Android constraints.
+<img src="./assets/divider.svg" alt="" width="100%">
 
-This is not a prompt box. It is an editor with intent-aware synthesis, structure awareness, and code-generation discipline.
+## THE EDITOR / THE AGENT / THE SIGNAL
+
+**KONKRED Dev** is an Android code editor concept built around agentic development: a workspace where human intent becomes structured Kotlin implementation. The project is currently an AI Studio–generated Android application, wired for Gemini through the Secrets Gradle Plugin.
+
+This README now uses the same visual grammar as the KONKRED profile: a local asset system, a persistent K-in-cube mark, red signal accents, and machine-readable project documentation.
 
 ```text
-DEVELOPER INTENT
-      ↓
-[KONKRED AGENT]
-      ↓
-[project context + Android rules + active file state]
-      ↓
-[semantic code synthesis]
-      ↓
-[valid Kotlin / Compose output]
+INTENT  →  CONTEXT  →  SYNTHESIS  →  REVIEW  →  SHIP
+  user      project       Kotlin       human       Android
 ```
 
----
+<img src="./assets/divider.svg" alt="" width="100%">
 
-## Why it matters
+## OPERATING SURFACE
 
-In Android work, the bottleneck is rarely logic alone. It is usually:
+<table>
+<tr>
+<td width="33%" valign="top">
 
-- repeated boilerplate
-- state handling complexity
-- lifecycle edge cases
-- inconsistent implementation patterns
-- slow refactoring loops
+**01 / CAPTURE**
 
-KONKRED Dev removes friction from this loop by operating as an agentic coding layer instead of a passive editor.
+Translate a developer request into a concrete coding task.
 
----
+</td>
+<td width="33%" valign="top">
 
-## Core capabilities
+**02 / COMPOSE**
 
-- Agentic code generation for Android/Kotlin workflows
-- Context-aware edits grounded in the current project
-- Compose and architecture-aware code synthesis
-- Refactor assistance with preserved behavior
-- Test generation for generated logic
-- Faster iteration on UI, business logic, and architecture
+Generate and refine Android UI and Kotlin implementation in context.
 
----
+</td>
+<td width="33%" valign="top">
 
-## What it is built for
+**03 / VERIFY**
 
-### UI engineering
-Generate screens, components, layouts, and state transitions aligned with modern Android patterns.
+Keep the human in the loop: inspect, build, test, and ship deliberately.
 
-### Architecture and logic
-Turn requirements into Kotlin logic, ViewModel flows, repositories, use cases, and app-state behavior.
+</td>
+</tr>
+</table>
 
-### Cleanup and refactor
-Move fast without breaking structure. Ask for a refactor, and the agent preserves intent while improving clarity.
+<img src="./assets/divider.svg" alt="" width="100%">
 
-### Ship-ready workflows
-Generate implementation with better structure, standard patterns, and fewer manual copy-paste mistakes.
+## STACK TRACE / PROJECT SIGNAL
 
----
-
-## The operating model
-
-| Layer | Role |
+| Layer | Current signal |
 |:---|:---|
-| Intent layer | Understand the user request and desired behavior |
-| Context layer | Read the current project structure and patterns |
-| Synthesis layer | Generate Kotlin and Compose code |
-| Review layer | Show the result for validation and iteration |
-| Delivery layer | Produce usable Android-ready implementation |
+| Platform | Android |
+| Language | Kotlin |
+| UI | Jetpack Compose |
+| AI surface | Gemini / Firebase AI |
+| Build | Gradle Kotlin DSL |
+| Minimum SDK | 24 |
+| Target SDK | 36 |
 
----
+> The repository is Kotlin-first. The visual system is KONKRED-first. The implementation is still evolving.
 
-## Example workflow
+<img src="./assets/divider.svg" alt="" width="100%">
 
-```kotlin
-@Composable
-fun UserProfileScreen(
-    userId: String,
-    modifier: Modifier = Modifier,
-    viewModel: UserProfileViewModel = hiltViewModel()
-) {
-    val uiState by viewModel.uiState.collectAsState()
+## BOOT SEQUENCE
 
-    when (val state = uiState) {
-        is UserProfileState.Loading -> LoadingIndicator()
-        is UserProfileState.Success -> UserProfileContent(state.user, modifier)
-        is UserProfileState.Error -> ErrorCard(state.message)
-    }
-}
-```
+### Prerequisites
 
-The goal is not “generate random code.” The goal is “generate code that behaves like the project expects it to behave.”
+- [Android Studio](https://developer.android.com/studio)
+- An Android emulator or physical device
+- A Gemini API key
 
----
-
-## Stack
-
-```text
-Language       : Kotlin
-Platform       : Android
-Runtime        : Native App Runtime
-Pattern        : Agentic code synthesis
-UI             : Compose / Android UI
-```
-
----
-
-## Quick start
+### Run locally
 
 ```bash
 git clone https://github.com/reARbitRA/KonkredDev-Android.git
 cd KonkredDev-Android
-./gradlew build
 ```
 
-Then open in Android Studio and run on emulator or device.
+Create `.env` in the project root. Do not commit it:
 
----
+```dotenv
+GEMINI_API_KEY=your_gemini_api_key
+```
 
-## Roadmap
+Open the project in Android Studio, allow Gradle sync to complete, then run the `app` configuration on an emulator or device.
 
-- AI-assisted Compose screen generation
-- Refactor and cleanup agent
-- Project-aware code completion
-- Test generation from intent
-- Multi-module Android workflow support
+For a local debug build:
 
----
+```bash
+./gradlew assembleDebug
+```
 
-## License
+<img src="./assets/divider.svg" alt="" width="100%">
 
-This project is designed as a developer-first Android intelligence tool under the KONKRED ecosystem.
+## REPOSITORY MAP
 
----
+```text
+KonkredDev-Android/
+├── app/                 Android application module
+├── assets/              KONKRED README artwork
+├── .env.example         Local secrets template
+├── build.gradle.kts     Root Gradle configuration
+├── settings.gradle.kts  Project settings
+└── README.md            This control surface
+```
+
+<img src="./assets/divider.svg" alt="" width="100%">
+
+## ROADMAP / NEXT SIGNAL
+
+- [ ] Make the editor surface explicit and production-ready
+- [ ] Add project-aware context inspection
+- [ ] Add Kotlin/Compose code synthesis flows
+- [ ] Add review, diff, and rollback controls
+- [ ] Add automated tests for generated output
+
+<img src="./assets/divider.svg" alt="" width="100%">
 
 <div align="center">
+<a href="https://github.com/reARbitRA/KonkredDev-Android"><img src="./assets/footer.svg" alt="Open KONKRED Dev on GitHub" width="100%"></a>
 
-<strong>CONCRETE TOOLS FOR ABSTRACT PROBLEMS</strong>
+<br>
 
-[🏭 KONKRED](https://konkred.xyz) · [💻 GitHub](https://github.com/reARbitRA) · [📚 Android](https://developer.android.com/)
+<strong><a href="https://konkred.xyz">KONKRED</a> · <a href="https://github.com/reARbitRA">reARbitRA</a> · <a href="https://developer.android.com/">ANDROID</a></strong>
 
-<sub>KONKRED Dev — Android Agentic Code Editor</sub>
-
-<sub>Factory Floor · Black #0A0908 · Red #D60019 · Ink #F4F1EB</sub>
+<sub>Concrete tools for abstract problems.</sub>
 
 </div>

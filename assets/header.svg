@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 430" role="img" aria-labelledby="title desc">
+  <title id="title">KONKRED Dev — Android Agentic Code Editor</title>
+  <desc id="desc">A red signal K inside a three-dimensional cube on a black industrial grid.</desc>
+  <defs>
+    <linearGradient id="red" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff3045"/><stop offset="1" stop-color="#d60019"/></linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2a1718"/><stop offset="1" stop-color="#100b0b"/></linearGradient>
+    <pattern id="grid" width="38" height="38" patternUnits="userSpaceOnUse"><path d="M38 0H0V38" fill="none" stroke="#f4f1eb" stroke-opacity=".06"/></pattern>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1200" height="430" fill="#0a0908"/><rect width="1200" height="430" fill="url(#grid)"/>
+  <path d="M0 360H1200" stroke="#d60019" stroke-opacity=".35"/><path d="M0 362H1200" stroke="#f4f1eb" stroke-opacity=".08"/>
+  <g transform="translate(105 70)">
+    <path d="M0 86 95 30l95 56-95 56Z" fill="url(#red)" stroke="#ff3045" stroke-width="3"/>
+    <path d="M0 86v120l95 58V142Z" fill="#171313" stroke="#d60019" stroke-width="3"/>
+    <path d="M95 142v122l95-58V86Z" fill="url(#face)" stroke="#ff3045" stroke-width="3"/>
+    <path d="M95 30v112M0 86l95 56 95-56" stroke="#f4f1eb" stroke-opacity=".35" stroke-width="2"/>
+    <text x="95" y="190" text-anchor="middle" fill="#f4f1eb" font-family="Arial Black,Arial,sans-serif" font-size="100" font-weight="900" filter="url(#glow)">K</text>
+    <path d="M22 120h146" stroke="#ff3045" stroke-width="2" stroke-opacity=".7"/>
+  </g>
+  <g fill="#f4f1eb" font-family="Arial,Helvetica,sans-serif">
+    <text x="390" y="142" font-size="66" font-weight="900" letter-spacing="7">KONKRED DEV</text>
+    <text x="394" y="198" font-size="26" letter-spacing="5" fill="#ff3045">ANDROID / AGENTIC CODE EDITOR</text>
+    <text x="394" y="258" font-family="monospace" font-size="16" letter-spacing="2" fill="#f4f1eb" fill-opacity=".72">INTENT → CONTEXT → SYNTHESIS → SHIP</text>
+    <text x="394" y="326" font-family="monospace" font-size="13" letter-spacing="3" fill="#f4f1eb" fill-opacity=".5">KOTLIN · COMPOSE · GEMINI · FACTORY FLOOR</text>
+  </g>
+  <circle cx="1130" cy="70" r="7" fill="#d60019"/><text x="1150" y="76" fill="#f4f1eb" font-family="monospace" font-size="13" text-anchor="end">SIGNAL / LIVE</text>
+</svg>
