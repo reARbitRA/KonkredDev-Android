@@ -1,0 +1,180 @@
+{
+  "which": "pre",
+  "dimensions": {
+    "D1": {
+      "penalty": 53.595,
+      "raw": 46.405,
+      "cap": 0.0,
+      "s_d": 0.0,
+      "grade": "B",
+      "min": 0.0,
+      "max": 8.0,
+      "contrib": [
+        "F-EXEC-005[P0,c=0.95,g=B]=38.475",
+        "F-DATA-001[P1,c=0.85,g=B]=13.770",
+        "F-QUAL-004[P3,c=1.0,g=B]=1.350"
+      ]
+    },
+    "D2": {
+      "penalty": 11.61,
+      "raw": 88.39,
+      "cap": 0.0,
+      "s_d": 0.0,
+      "grade": "A",
+      "min": 0.0,
+      "max": 3.0,
+      "contrib": [
+        "F-EXEC-004[P2,c=0.9,g=B]=4.860",
+        "F-QUAL-003[P2,c=1.0,g=B]=5.400",
+        "F-RELY-003[P2,c=0.5,g=D]=1.350"
+      ]
+    },
+    "D3": {
+      "penalty": 37.8,
+      "raw": 62.2,
+      "cap": null,
+      "s_d": 62.2,
+      "grade": "B",
+      "min": 54.2,
+      "max": 70.2,
+      "contrib": [
+        "F-SEC-001[P1,c=0.9,g=B]=14.580",
+        "F-SEC-002[P1,c=0.85,g=B]=13.770",
+        "F-SEC-003[P2,c=0.95,g=B]=5.130",
+        "F-SEC-005[P2,c=0.8,g=B]=4.320"
+      ]
+    },
+    "D4": {
+      "penalty": 10.26,
+      "raw": 89.74,
+      "cap": null,
+      "s_d": 89.74,
+      "grade": "B",
+      "min": 81.74,
+      "max": 97.74,
+      "contrib": [
+        "F-DATA-002[P2,c=1.0,g=B]=5.400",
+        "F-DATA-003[P2,c=0.9,g=B]=4.860"
+      ]
+    },
+    "D5": {
+      "penalty": 48.96,
+      "raw": 51.04,
+      "cap": 30.0,
+      "s_d": 30.0,
+      "grade": "A",
+      "min": 27.0,
+      "max": 33.0,
+      "contrib": [
+        "F-EXEC-001[P1,c=1.0,g=A]=18.000",
+        "F-EXEC-002[P1,c=0.8,g=B]=12.960",
+        "F-OPS-001[P1,c=1.0,g=A]=18.000"
+      ]
+    },
+    "D6": {
+      "penalty": 4.86,
+      "raw": 95.14,
+      "cap": null,
+      "s_d": 95.14,
+      "grade": "B",
+      "min": 87.14,
+      "max": 100.0,
+      "contrib": [
+        "F-OPS-002[P2,c=0.9,g=B]=4.860"
+      ]
+    },
+    "D7": {
+      "penalty": 6.615,
+      "raw": 93.385,
+      "cap": null,
+      "s_d": 93.385,
+      "grade": "B",
+      "min": 85.385,
+      "max": 100.0,
+      "contrib": [
+        "F-OBS-001[P2,c=1.0,g=B]=5.400",
+        "F-RELY-002[P3,c=0.9,g=B]=1.215"
+      ]
+    },
+    "D8": {
+      "penalty": 4.86,
+      "raw": 95.14,
+      "cap": null,
+      "s_d": 95.14,
+      "grade": "B",
+      "min": 87.14,
+      "max": 100.0,
+      "contrib": [
+        "F-RELY-001[P2,c=0.9,g=B]=4.860"
+      ]
+    },
+    "D9": {
+      "penalty": 0.0,
+      "raw": 100.0,
+      "cap": 55.0,
+      "s_d": 55.0,
+      "grade": "C",
+      "min": 40.0,
+      "max": 70.0,
+      "contrib": []
+    },
+    "D10": {
+      "penalty": 7.35,
+      "raw": 92.65,
+      "cap": null,
+      "s_d": 92.65,
+      "grade": "A",
+      "min": 89.65,
+      "max": 95.65,
+      "contrib": [
+        "F-QUAL-001[P2,c=1.0,g=A]=6.000",
+        "F-QUAL-002[P3,c=1.0,g=B]=1.350"
+      ]
+    },
+    "D11": {
+      "penalty": 0.0,
+      "raw": 100.0,
+      "cap": 30.0,
+      "s_d": 30.0,
+      "grade": "A",
+      "min": 27.0,
+      "max": 33.0,
+      "contrib": []
+    },
+    "D12": {
+      "penalty": 22.86,
+      "raw": 77.14,
+      "cap": null,
+      "s_d": 77.14,
+      "grade": "A",
+      "min": 74.14,
+      "max": 80.14,
+      "contrib": [
+        "F-LEGAL-001[P1,c=1.0,g=A]=18.000",
+        "F-LEGAL-002[P2,c=0.9,g=B]=4.860"
+      ]
+    }
+  },
+  "R_point": 49.29,
+  "R_mean": 49.74,
+  "CI95": [
+    48.16,
+    51.34
+  ],
+  "P_GO_raw": 0.0,
+  "P_GO": 0.0,
+  "counts": {
+    "P0": 1,
+    "P1": 7,
+    "P2": 12,
+    "P3": 3
+  },
+  "hard_gates": [
+    "P0>=1 -> cap 0.05, forced NO-GO",
+    "P1>=5 -> cap 0.35",
+    "journey BROKEN -> cap 0.10"
+  ],
+  "grade_letter": "D",
+  "N": 10000,
+  "seed": 424242
+}

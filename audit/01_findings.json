@@ -1,0 +1,594 @@
+{
+  "commit": "cb16706806407515b0b25cc0751b96491d10ffee",
+  "journey_status_pre": {
+    "J1": "PARTIAL (code path complete & coherent; not executed)",
+    "J2": "PARTIAL",
+    "J3": "PARTIAL \u2014 persistence sub-path broken by F-DATA-001",
+    "J4": "PARTIAL \u2014 unhardened WebView (F-SEC-002)",
+    "J5": "BROKEN \u2014 dead model endpoint (F-EXEC-005)",
+    "J6": "PARTIAL",
+    "J7": "PARTIAL (simulation by design)"
+  },
+  "findings": [
+    {
+      "id": "F-EXEC-005",
+      "title": "Gemini integration calls retired model gemini-1.5-flash (404 since 2025-09-24)",
+      "lane": "EXEC",
+      "severity": "P0",
+      "confidence": 0.95,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:app/src/main/java/com/example/data/api/GeminiApi.kt:L29]",
+        "[E:metadata.json:L5]",
+        "[E:url:https://firebase.google.com/docs/ai-logic/faq-and-troubleshooting]",
+        "[E:url:https://discuss.ai.google.dev/t/404-error-models-gemini-1-5-flash-not-found-on-paid-api-tier/142428]"
+      ],
+      "impact": "The flagship AI pair-programming journey (J5) fails for every user with a valid API key: generateContent returns 404 'models/gemini-1.5-flash is not found for API version v1beta'. App surfaces it as 'Gemini Error: ...'.",
+      "exploit_or_repro": "Set a valid GEMINI_API_KEY in .env, build, ask AI anything -> HTTP 404 from Google endpoint (model shut down Sept 24 2025).",
+      "blast_radius": "all-users",
+      "remediation": "Switch endpoint model to a supported one (gemini-2.5-flash or gemini-flash-latest); send key via x-goog-api-key header instead of URL query.",
+      "effort_hours": 0.5,
+      "mvp_blocking": true,
+      "blocks_journey": [
+        "J5"
+      ]
+    },
+    {
+      "id": "F-EXEC-001",
+      "title": "No Gradle wrapper in repo; documented ./gradlew build command cannot run",
+      "lane": "EXEC",
+      "severity": "P1",
+      "confidence": 1.0,
+      "evidence_grade": "A",
+      "evidence": [
+        "[E:cmd#2 git ls-files (59 files, no gradlew, no gradle/wrapper/*)]",
+        "[E:README.md:'For a local debug build: ./gradlew assembleDebug']"
+      ],
+      "impact": "Fresh clone cannot build via documented instructions; build depends on undocumented locally-installed Gradle of exact version (AGP 9.1.1 requires Gradle >= 9.3.1).",
+      "exploit_or_repro": "git clone && ./gradlew assembleDebug -> 'No such file or directory'.",
+      "blast_radius": "all-users",
+      "remediation": "Commit gradlew, gradlew.bat, gradle/wrapper/gradle-wrapper.{jar,properties} pinned to Gradle 9.3.1+.",
+      "effort_hours": 1.0,
+      "mvp_blocking": true,
+      "blocks_journey": [
+        "J1",
+        "J2",
+        "J3",
+        "J4",
+        "J5",
+        "J6",
+        "J7"
+      ]
+    },
+    {
+      "id": "F-EXEC-002",
+      "title": "debug buildType signs with ${rootDir}/debug.keystore that does not exist and is gitignored",
+      "lane": "EXEC",
+      "severity": "P1",
+      "confidence": 0.8,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:app/build.gradle.kts:L30-L35 debugConfig signingConfig]",
+        "[E:app/build.gradle.kts:L44-L46 debug uses signingConfig debugConfig]",
+        "[E:.gitignore:L18 'debug.keystore']",
+        "[E:cmd#2 no debug.keystore tracked]"
+      ],
+      "impact": "assembleDebug fails on any clean checkout (keystore file missing) unless developer hand-creates it; README does not mention this step.",
+      "exploit_or_repro": "Clean clone + wrapper fix -> ./gradlew assembleDebug -> keystore not found for signing config 'debugConfig' (INFERENCE from config; unexecuted).",
+      "blast_radius": "all-users",
+      "remediation": "Remove custom debugConfig signingConfig and use AGP's auto-generated default debug keystore.",
+      "effort_hours": 0.5,
+      "mvp_blocking": true,
+      "blocks_journey": [
+        "J1"
+      ]
+    },
+    {
+      "id": "F-DATA-001",
+      "title": "Newly created files never persist edits: selectFile called with in-memory id=0 entity",
+      "lane": "DATA",
+      "severity": "P1",
+      "confidence": 0.85,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:app/src/main/java/com/example/ui/viewmodel/CodeEditorViewModel.kt:createNewFile \u2014 repository.insertFile(newFile) discards returned rowId; selectFile(newFile) with newFile.id=0]",
+        "[E:app/src/main/java/com/example/data/database/Daos.kt:@Update updateFile matches by id]",
+        "[E:app/src/main/java/com/example/data/database/Entities.kt:@PrimaryKey(autoGenerate=true) id: Long = 0]"
+      ],
+      "impact": "J3 data loss: user creates a file, types code, every updateCodeText issues @Update WHERE id=0 -> no row updated. On app restart or file switch the new file is empty. Silent.",
+      "exploit_or_repro": "Create 'test.js', type code, kill app, reopen -> file content is only the '/* Newly created file */' seed.",
+      "blast_radius": "data-loss",
+      "remediation": "Capture rowId from insertFile and select the entity copy with the real id (or re-query by path).",
+      "effort_hours": 1.0,
+      "mvp_blocking": true,
+      "blocks_journey": [
+        "J3"
+      ]
+    },
+    {
+      "id": "F-SEC-001",
+      "title": "Gemini API key shipped inside APK (BuildConfig) and passed in URL query string",
+      "lane": "SEC",
+      "severity": "P1",
+      "confidence": 0.9,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:app/src/main/java/com/example/data/api/GeminiApi.kt:L22,L29 key=$apiKey in URL]",
+        "[E:app/build.gradle.kts:secrets{} block]",
+        "[E:url:https://developers.google.com/maps/documentation/android-sdk/secrets-gradle-plugin (plugin bakes values into BuildConfig)]"
+      ],
+      "impact": "Anyone can unzip the APK / read BuildConfig strings and extract the developer's live API key, then run up billing. URL-embedded keys also leak into proxies/logs.",
+      "exploit_or_repro": "apktool d app-release.apk; grep BuildConfig -> GEMINI_API_KEY plaintext.",
+      "blast_radius": "all-users",
+      "remediation": "Minimum: header-based key (x-goog-api-key), document API-key restrictions (package+cert fingerprint) in README. Correct: backend proxy for AI calls.",
+      "effort_hours": 2.0,
+      "mvp_blocking": true,
+      "blocks_journey": [
+        "J5"
+      ]
+    },
+    {
+      "id": "F-SEC-002",
+      "title": "WebView executes untrusted HTML/JS with file access defaults and unrestricted navigation; never destroyed",
+      "lane": "SEC",
+      "severity": "P1",
+      "confidence": 0.85,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:app/src/main/java/com/example/ui/components/HtmlPreview.kt:L18-L40 javaScriptEnabled=true, domStorageEnabled=true, plain WebViewClient, no allowFileAccess=false, no DisposableEffect destroy]",
+        "[E:app/build.gradle.kts:minSdk=24 (allowFileAccess defaults true below API 30)]"
+      ],
+      "impact": "AI-generated or pasted HTML runs with file:// access on API 24-29 devices and can navigate the WebView to arbitrary external origins; WebView instance leaks on recomposition/dispose.",
+      "exploit_or_repro": "Paste <script>location='https://evil.example'</script> or file:/// probe into index.html, enable preview.",
+      "blast_radius": "single-user",
+      "remediation": "settings.allowFileAccess=false, allowContentAccess=false, shouldOverrideUrlLoading blocks non-baseUrl navigation, destroy WebView in DisposableEffect.",
+      "effort_hours": 1.5,
+      "mvp_blocking": true,
+      "blocks_journey": [
+        "J4"
+      ]
+    },
+    {
+      "id": "F-OPS-001",
+      "title": "No CI/CD: .github/ absent, zero automated build/test verification",
+      "lane": "OPS",
+      "severity": "P1",
+      "confidence": 1.0,
+      "evidence_grade": "A",
+      "evidence": [
+        "[E:cmd#12 ls .github -> 'No such file or directory']"
+      ],
+      "impact": "Nothing prevents committing a non-compiling tree; no regression signal; release committee has no green/red history.",
+      "exploit_or_repro": "NONE_FOUND",
+      "blast_radius": "all-users",
+      "remediation": "Add GitHub Actions workflow: setup JDK 17+, gradle wrapper build + testDebugUnitTest on push/PR.",
+      "effort_hours": 2.0,
+      "mvp_blocking": true,
+      "blocks_journey": []
+    },
+    {
+      "id": "F-LEGAL-001",
+      "title": "No LICENSE file \u2014 repo is all-rights-reserved by default, cannot be shipped as OSS",
+      "lane": "LEGAL",
+      "severity": "P1",
+      "confidence": 1.0,
+      "evidence_grade": "A",
+      "evidence": [
+        "[E:cmd#12 ls LICENSE* -> 'No such file or directory']"
+      ],
+      "impact": "Public repo without license grants no rights to forkers/users; blocks any distribution decision.",
+      "exploit_or_repro": "NONE_FOUND",
+      "blast_radius": "legal",
+      "remediation": "Owner must choose and add a LICENSE (HUMAN DECISION \u2014 cannot be automated).",
+      "effort_hours": 0.5,
+      "mvp_blocking": true,
+      "blocks_journey": []
+    },
+    {
+      "id": "F-EXEC-004",
+      "title": "ExampleInstrumentedTest asserts packageName 'com.example' but applicationId is 'com.aistudio.devcodeeditor.vscedt'",
+      "lane": "EXEC",
+      "severity": "P2",
+      "confidence": 0.9,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:app/src/androidTest/java/com/example/ExampleInstrumentedTest.kt:assertEquals('com.example', appContext.packageName)]",
+        "[E:app/build.gradle.kts:applicationId = 'com.aistudio.devcodeeditor.vscedt']"
+      ],
+      "impact": "androidTest suite is red-by-construction on any device run.",
+      "exploit_or_repro": "connectedDebugAndroidTest fails on useAppContext.",
+      "blast_radius": "single-user",
+      "remediation": "Assert BuildConfig.APPLICATION_ID.",
+      "effort_hours": 0.25,
+      "mvp_blocking": false,
+      "blocks_journey": []
+    },
+    {
+      "id": "F-SEC-003",
+      "title": "Real-looking personal email and identity hardcoded across UI and mock data",
+      "lane": "SEC",
+      "severity": "P2",
+      "confidence": 0.95,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:CodeEditorViewModel.kt init: GitCommit(...,'ari_eshghi89@gmail.com',...)]",
+        "[E:CodeEditorViewModel.kt executeTerminalCommand: 'ari_eshghi@devcode-android:~$']",
+        "[E:CodeEditorViewModel.kt commitGitChanges author]",
+        "[E:NewPanels.kt: 'Author: ari_eshghi']",
+        "[E:AppDatabase.kt: SSH seed username 'ari_eshghi' + mock RSA key string]"
+      ],
+      "impact": "PII of a real person baked into every install; shown in terminal prompt and commit log UI.",
+      "exploit_or_repro": "grep -rn 'ari_eshghi' app/src.",
+      "blast_radius": "legal",
+      "remediation": "Replace with neutral placeholder identity (dev@devcode.local / 'devcode').",
+      "effort_hours": 0.5,
+      "mvp_blocking": false,
+      "blocks_journey": []
+    },
+    {
+      "id": "F-SEC-005",
+      "title": "allowBackup=true with stock sample backup rules \u2014 app DB (files, SSH entries) eligible for cloud backup",
+      "lane": "SEC",
+      "severity": "P2",
+      "confidence": 0.8,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:app/src/main/AndroidManifest.xml:L8-L10]",
+        "[E:app/src/main/res/xml/data_extraction_rules.xml (all rules commented out)]"
+      ],
+      "impact": "User code and stored SSH profiles copied to Google cloud backup without explicit policy.",
+      "exploit_or_repro": "NONE_FOUND",
+      "blast_radius": "single-user",
+      "remediation": "Define include/exclude rules or set allowBackup=false until policy decided.",
+      "effort_hours": 1.0,
+      "mvp_blocking": false,
+      "blocks_journey": []
+    },
+    {
+      "id": "F-DATA-002",
+      "title": "fallbackToDestructiveMigration() will silently wipe all user files on any schema bump",
+      "lane": "DATA",
+      "severity": "P2",
+      "confidence": 1.0,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:AppDatabase.kt:L32 .fallbackToDestructiveMigration()]",
+        "[E:AppDatabase.kt exportSchema=false]"
+      ],
+      "impact": "First version upgrade that touches schema destroys the user's entire virtual project \u2014 data-loss by design.",
+      "exploit_or_repro": "Bump version=2 without migration -> DB recreated empty.",
+      "blast_radius": "data-loss",
+      "remediation": "exportSchema=true, add real Migrations; acceptable to keep destructive fallback only pre-1.0 with explicit comment.",
+      "effort_hours": 2.0,
+      "mvp_blocking": false,
+      "blocks_journey": []
+    },
+    {
+      "id": "F-DATA-003",
+      "title": "deleteDirectoryAndChildren uses LIKE dirPath||'%' (prefix collision) and runs outside a transaction",
+      "lane": "DATA",
+      "severity": "P2",
+      "confidence": 0.9,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:Daos.kt:@Query('DELETE FROM local_files WHERE path LIKE :dirPath || \\'%\\'')]",
+        "[E:CodeEditorViewModel.kt deleteFile: deleteFile(file) then deleteDirectoryAndChildren(file.path), two separate calls]"
+      ],
+      "impact": "Deleting folder '/project' also deletes '/project-x' rows; partial failure leaves orphans.",
+      "exploit_or_repro": "Create '/proj' and '/proj2' dirs; delete '/proj' -> both gone.",
+      "blast_radius": "data-loss",
+      "remediation": "LIKE dirPath || '/%' plus exact-path delete, wrapped in @Transaction.",
+      "effort_hours": 1.0,
+      "mvp_blocking": false,
+      "blocks_journey": [
+        "J3"
+      ]
+    },
+    {
+      "id": "F-RELY-001",
+      "title": "Room write + full-document regex re-highlight on every keystroke (no debounce)",
+      "lane": "RELY",
+      "severity": "P2",
+      "confidence": 0.9,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:CodeEditorViewModel.kt updateCodeText: repository.updateFile per call + triggerLintAnalyzer]",
+        "[E:CodeEditorScreen.kt CodeWorkspaceTextEditor.onValueChange: CodeHighlighter.highlightCode(full text) per keystroke]",
+        "[E:CodeHighlighter.kt multiple Regex.findAll passes over whole document]"
+      ],
+      "impact": "Typing lag and DB churn grow linearly with file size; battery/IO waste.",
+      "exploit_or_repro": "Open a multi-thousand-line file, type rapidly.",
+      "blast_radius": "single-user",
+      "remediation": "Debounce persistence (~400ms) and highlight off the keystroke hot path.",
+      "effort_hours": 3.0,
+      "mvp_blocking": false,
+      "blocks_journey": [
+        "J2"
+      ]
+    },
+    {
+      "id": "F-RELY-003",
+      "title": "Editor TextFieldValue rebuilt via remember(codeText) without preserving selection \u2014 cursor reset behavior",
+      "lane": "RELY",
+      "severity": "P2",
+      "confidence": 0.5,
+      "evidence_grade": "D",
+      "evidence": [
+        "[E:CodeEditorScreen.kt CodeWorkspaceTextEditor: remember(codeText){ TextFieldValue(annotatedString = highlighted) } \u2014 selection/composition not carried over]"
+      ],
+      "impact": "Cursor jumps (likely to position 0) while typing because each VM round-trip re-keys the state. Grade D: cannot execute in sandbox.",
+      "exploit_or_repro": "UNTESTABLE locally; requires device/emulator.",
+      "blast_radius": "single-user",
+      "remediation": "Track TextFieldValue in rememberUpdateState/remember{mutableStateOf} and preserve selection across highlight updates.",
+      "effort_hours": 2.0,
+      "mvp_blocking": false,
+      "blocks_journey": [
+        "J2"
+      ]
+    },
+    {
+      "id": "F-OBS-001",
+      "title": "No logging/crash-reporting infrastructure; errors swallowed or printStackTrace'd",
+      "lane": "OBS",
+      "severity": "P2",
+      "confidence": 1.0,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:GeminiApi.kt:L84 e.printStackTrace()]",
+        "[E:CodeEditorViewModel.kt replaceAllOccurrences: catch(e){origContent} silent]",
+        "[E:cmd grep: no Timber/logcat wrapper, no Sentry/Firebase Crashlytics dependency active]"
+      ],
+      "impact": "Field failures (AI errors, DB errors) are invisible to maintainers.",
+      "exploit_or_repro": "NONE_FOUND",
+      "blast_radius": "all-users",
+      "remediation": "Introduce android.util.Log wrapper with tags now; crash reporting before public release.",
+      "effort_hours": 3.0,
+      "mvp_blocking": false,
+      "blocks_journey": []
+    },
+    {
+      "id": "F-QUAL-001",
+      "title": "God files: CodeEditorScreen.kt 1688 LOC, CodeEditorViewModel.kt 948 LOC; no DI; VM owns ~30 state flows",
+      "lane": "QUAL",
+      "severity": "P2",
+      "confidence": 1.0,
+      "evidence_grade": "A",
+      "evidence": [
+        "[E:cmd#5 wc -l: 1688 / 948 / 652]"
+      ],
+      "impact": "Every feature touches the same two files; high regression risk; untestable without whole VM+Application.",
+      "exploit_or_repro": "NONE_FOUND",
+      "blast_radius": "all-users",
+      "remediation": "Split panels into files, extract state holders, introduce simple factory/DI for VM.",
+      "effort_hours": 8.0,
+      "mvp_blocking": false,
+      "blocks_journey": []
+    },
+    {
+      "id": "F-QUAL-003",
+      "title": "Zero tests exercise product logic (VM, repository, highlighter, terminal, search/replace)",
+      "lane": "QUAL",
+      "severity": "P2",
+      "confidence": 1.0,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:cmd#6 all four test files read: 2+2 assertion, string resource, screenshot capture, wrong-package instrumented test]"
+      ],
+      "impact": "No regression safety net for any of J1-J7.",
+      "exploit_or_repro": "NONE_FOUND",
+      "blast_radius": "all-users",
+      "remediation": "Add Robolectric VM tests for seed/select (J1), persist-on-edit (J2), create-file persistence (J3), replace-all (J6), terminal (J7).",
+      "effort_hours": 6.0,
+      "mvp_blocking": false,
+      "blocks_journey": []
+    },
+    {
+      "id": "F-OPS-002",
+      "title": "Release path undocumented and non-reproducible: env-var signing with missing default keystore, minify off",
+      "lane": "OPS",
+      "severity": "P2",
+      "confidence": 0.9,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:app/build.gradle.kts:L24-L29,L40-L43 KEYSTORE_PATH/STORE_PASSWORD/KEY_PASSWORD, my-upload-key.jks absent, isMinifyEnabled=false]"
+      ],
+      "impact": "No one outside the original author can produce a release build; no shrink/obfuscation for a shipping APK.",
+      "exploit_or_repro": "KEYSTORE_PATH unset -> assembleRelease fails on missing my-upload-key.jks.",
+      "blast_radius": "all-users",
+      "remediation": "Document release signing env vars in README; add keystore setup steps; evaluate minify.",
+      "effort_hours": 2.0,
+      "mvp_blocking": false,
+      "blocks_journey": []
+    },
+    {
+      "id": "F-LEGAL-002",
+      "title": "No privacy policy despite sending user code to Google Gemini and claiming secure cloud sync",
+      "lane": "LEGAL",
+      "severity": "P2",
+      "confidence": 0.9,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:CodeEditorViewModel.kt askGeminiPairProgrammer embeds full active-file content in prompt]",
+        "[E:metadata.json 'secure cloud sync' claim]",
+        "[E:cmd#2 no privacy policy file tracked]"
+      ],
+      "impact": "Store listing rejection risk; GDPR/CCPA exposure if released publicly.",
+      "exploit_or_repro": "NONE_FOUND",
+      "blast_radius": "legal",
+      "remediation": "Publish privacy policy + in-app disclosure that code is sent to Google. HUMAN: legal text approval.",
+      "effort_hours": 3.0,
+      "mvp_blocking": false,
+      "blocks_journey": []
+    },
+    {
+      "id": "F-RELY-002",
+      "title": "Unbounded in-memory growth: terminalLogs and aiDialogue lists never trimmed",
+      "lane": "RELY",
+      "severity": "P3",
+      "confidence": 0.9,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:CodeEditorViewModel.kt pushTerminalLog append-only; _aiDialogue append-only]"
+      ],
+      "impact": "Long sessions grow memory linearly; LazyColumn recomposition cost.",
+      "exploit_or_repro": "Loop 10k terminal commands.",
+      "blast_radius": "single-user",
+      "remediation": "Cap lists (e.g. last 500 entries).",
+      "effort_hours": 0.5,
+      "mvp_blocking": false,
+      "blocks_journey": []
+    },
+    {
+      "id": "F-QUAL-002",
+      "title": "Duplicate testTag 'submit_button' on AI-quick-fix IconButton and the editor BasicTextField",
+      "lane": "QUAL",
+      "severity": "P3",
+      "confidence": 1.0,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:CodeEditorScreen.kt: two Modifier.testTag(\"submit_button\") sites (lint-fix IconButton; BasicTextField)]"
+      ],
+      "impact": "UI tests targeting the tag are ambiguous/flaky.",
+      "exploit_or_repro": "onNodeWithTag('submit_button') throws AmbiguousMatchError when both visible.",
+      "blast_radius": "single-user",
+      "remediation": "Rename tags uniquely (ai_quick_fix_button, code_editor_input).",
+      "effort_hours": 0.25,
+      "mvp_blocking": false,
+      "blocks_journey": []
+    },
+    {
+      "id": "F-QUAL-004",
+      "title": "Simulated features presented as real: fake SSH success, fake cloud sync, fake git; metadata claims 'production-ready'",
+      "lane": "QUAL",
+      "severity": "P3",
+      "confidence": 1.0,
+      "evidence_grade": "B",
+      "evidence": [
+        "[E:CodeEditorViewModel.kt executeTerminalCommand ssh connect prints 'Success... 256-bit AES' with no socket code]",
+        "[E:triggerCloudSync = delay() sequence only]",
+        "[E:metadata.json description]",
+        "[E:README.md 'concept']"
+      ],
+      "impact": "User trust / potential store-policy misrepresentation if shipped as-is.",
+      "exploit_or_repro": "Run 'ssh connect anything' -> instant fake success.",
+      "blast_radius": "legal",
+      "remediation": "Label panels DEMO/SIMULATED in UI and align metadata.json with README's concept framing.",
+      "effort_hours": 1.0,
+      "mvp_blocking": false,
+      "blocks_journey": [
+        "J7"
+      ]
+    },
+    {
+      "id": "F-EXEC-003",
+      "title": "Audit sandbox cannot execute Android builds (no JDK/SDK, Maven+Google hosts unreachable) \u2014 execution deferred to CI",
+      "lane": "EXEC",
+      "severity": "P3",
+      "confidence": 1.0,
+      "evidence_grade": "A",
+      "evidence": [
+        "[E:cmd#4 java: command not found; no /usr/lib/android-sdk]",
+        "[E:cmd#7 curl 000 for repo.maven.apache.org, services.gradle.org, dl.google.com]"
+      ],
+      "impact": "All pre-remediation EXEC-lane conclusions are Grade B/C/D; Grade A obtainable only via GitHub Actions.",
+      "exploit_or_repro": "NONE_FOUND",
+      "blast_radius": "single-user",
+      "remediation": "Use CI as execution venue (done in Phase 7).",
+      "effort_hours": 0.0,
+      "mvp_blocking": false,
+      "blocks_journey": []
+    }
+  ],
+  "severity_counts_pre": {
+    "P0": 1,
+    "P1": 7,
+    "P2": 12,
+    "P3": 4,
+    "note": "F-EXEC-003 (P3) is an audit-environment constraint, excluded from dimension scoring; scored counts: P0=1 P1=7 P2=12 P3=3"
+  },
+  "module_ratings": [
+    {
+      "module": "ui/components/CodeEditorScreen.kt",
+      "loc": 1688,
+      "complexity": "high (deep nesting, 15+ composables in one file)",
+      "test_cov": 0,
+      "grade": "D",
+      "top_risk": "editor state/cursor handling, god file"
+    },
+    {
+      "module": "ui/viewmodel/CodeEditorViewModel.kt",
+      "loc": 948,
+      "complexity": "high (30+ flows, mixed IO+UI+mocks)",
+      "test_cov": 0,
+      "grade": "D",
+      "top_risk": "F-DATA-001 silent data loss"
+    },
+    {
+      "module": "ui/components/NewPanels.kt",
+      "loc": 652,
+      "complexity": "medium",
+      "test_cov": 0,
+      "grade": "C",
+      "top_risk": "mock git presented as real"
+    },
+    {
+      "module": "data/database/*",
+      "loc": 389,
+      "complexity": "low-medium",
+      "test_cov": 0,
+      "grade": "C",
+      "top_risk": "destructive migration, LIKE prefix bug"
+    },
+    {
+      "module": "data/api/GeminiApi.kt",
+      "loc": 86,
+      "complexity": "low",
+      "test_cov": 0,
+      "grade": "F",
+      "top_risk": "dead model, key in URL"
+    },
+    {
+      "module": "ui/code/CodeHighlighter.kt",
+      "loc": 121,
+      "complexity": "medium (regex per keystroke)",
+      "test_cov": 0,
+      "grade": "C",
+      "top_risk": "perf on large docs"
+    },
+    {
+      "module": "ui/components/HtmlPreview.kt",
+      "loc": 41,
+      "complexity": "low",
+      "test_cov": 0,
+      "grade": "D",
+      "top_risk": "unhardened WebView"
+    },
+    {
+      "module": "ui/theme/*",
+      "loc": 101,
+      "complexity": "low",
+      "test_cov": "screenshot test only",
+      "grade": "B",
+      "top_risk": "light theme unused/dead-ish"
+    },
+    {
+      "module": "MainActivity.kt",
+      "loc": 33,
+      "complexity": "low",
+      "test_cov": 0,
+      "grade": "B",
+      "top_risk": "none material"
+    }
+  ],
+  "spotcheck_corrections": {
+    "GeminiApi.kt": "url+key-in-query at L27 (tokens citing L29 corrected); apiKey L22; printStackTrace L82",
+    "app/build.gradle.kts": "applicationId L14; release env-var signing L25-L29; debugConfig storeFile L32; release signingConfig L44; debug signingConfig L47; isMinifyEnabled L42",
+    "AndroidManifest.xml": "allowBackup/dataExtractionRules/fullBackupContent L8-L10",
+    "HtmlPreview.kt": "javaScriptEnabled L20; domStorageEnabled L21; plain WebViewClient L25; loadDataWithBaseURL L31",
+    "CodeEditorViewModel.kt": "selectFile L289; updateCodeText L303 (db write L307); createNewFile L391 (insertFile L401, selectFile(newFile) L405); triggerCloudSync L412; fake ssh success L629-L630; deleteFile L692; PII emails L259-L260,L866",
+    "CodeEditorScreen.kt": "duplicate testTag submit_button L319 & L1462; remember(codeText) TextFieldValue L1370",
+    "Daos.kt": "LIKE prefix delete L26",
+    "ExampleInstrumentedTest.kt": "packageName assert L20",
+    "README.md": "./gradlew assembleDebug L114"
+  }
+}

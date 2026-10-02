@@ -421,7 +421,7 @@ fun GitSourceControlPanel(viewModel: CodeEditorViewModel) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(text = "Author: ari_eshghi", fontSize = 9.sp, color = Color.Gray)
+                            Text(text = "Author: devcode", fontSize = 9.sp, color = Color.Gray)
                             Text(text = "${commit.filesCount} file(s)", fontSize = 9.sp, color = VsSecondaryAccent)
                         }
                     }

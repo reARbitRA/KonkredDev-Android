@@ -1,0 +1,84 @@
+{
+  "commit_pinned": "cb16706806407515b0b25cc0751b96491d10ffee",
+  "audit_branch": "arena/01a0fb78-konkreddev-android (platform-pinned; functions as audit/mvp-readiness-cb16706)",
+  "audit_started_utc": "2026-10-02T07:18:07Z",
+  "repo_physics": {
+    "total_tracked_files": 59,
+    "total_lines_tracked_text": 6005,
+    "kotlin_loc": 4180,
+    "commit_count": 1,
+    "contributors": 1,
+    "contributor_list": ["re-ARbitRA"],
+    "last_commit_age_days": 4,
+    "open_branches": ["main", "arena/01a0fb78-konkreddev-android"],
+    "evidence": ["[E:cmd#1 git rev-parse/log/branch/status]", "[E:cmd#5 wc -l]", "[E:cmd#6 shortlog]"]
+  },
+  "stack": {
+    "platform": "Android (single-module Gradle Kotlin DSL)",
+    "language": "Kotlin 2.2.10",
+    "ui": "Jetpack Compose (BOM 2024.09.00, Material3)",
+    "persistence": "Room 2.7.0 (KSP), SharedPreferences",
+    "network": "OkHttp 4.10.0, Retrofit 2.12.0 (declared, unused in source), Moshi (declared, unused in source)",
+    "ai": "Gemini REST via OkHttp (generativelanguage.googleapis.com v1beta), firebase-ai declared (BOM 34.12.0, unused in source)",
+    "build_plugins": ["com.android.application 9.1.1", "org.jetbrains.kotlin.plugin.compose 2.2.10", "com.google.devtools.ksp 2.3.5", "roborazzi 1.59.0", "secrets-gradle-plugin 2.0.1"],
+    "test_stack": ["JUnit4", "Robolectric 4.16.1", "Roborazzi (screenshot)", "Compose UI test", "Espresso/androidTest (device-only)"],
+    "ci": "NONE — .github/ absent [E:cmd#12]",
+    "manifests_found": ["build.gradle.kts", "settings.gradle.kts", "app/build.gradle.kts", "gradle/libs.versions.toml", "gradle.properties"],
+    "manifests_absent": ["gradlew / gradle/wrapper/* (no Gradle wrapper) [E:cmd#2 git ls-files]", "Dockerfile", ".github/workflows/*", "LICENSE"]
+  },
+  "external_fact_checks": [
+    {"claim": "AGP 9.1.1 exists (April 2026), requires Gradle >= 9.3.1, JDK >= 17", "grade": "C", "evidence": "[E:url:https://developer.android.com/build/releases/agp-9-1-0-release-notes]"},
+    {"claim": "KSP plugin version 2.3.5 exists (released ~Jan 2026)", "grade": "C", "evidence": "[E:url:https://github.com/google/ksp/releases]"},
+    {"claim": "gemini-1.5-flash shut down 2025-09-24; v1beta calls return 404", "grade": "C", "evidence": "[E:url:https://firebase.google.com/docs/ai-logic/faq-and-troubleshooting]", "[E:url:https://discuss.ai.google.dev/t/404-error-models-gemini-1-5-flash-not-found-on-paid-api-tier/142428]"},
+    {"claim": "secrets-gradle-plugin exposes properties as BuildConfig fields (so BuildConfig.GEMINI_API_KEY compiles)", "grade": "C", "evidence": "[E:url:https://developers.google.com/maps/documentation/android-sdk/secrets-gradle-plugin]"}
+  ],
+  "env_constraints": {
+    "jdk": "NOT INSTALLED (java: command not found) [E:cmd#4]",
+    "android_sdk": "NOT PRESENT [E:cmd#4]",
+    "sandbox_network": "github.com reachable (200); repo.maven.apache.org, dl.google.com, services.gradle.org, raw.githubusercontent.com all unreachable (000) [E:cmd#7]",
+    "consequence": "Local build/test execution IMPOSSIBLE in audit sandbox; execution delegated to GitHub Actions (github.com + gh api reachable, gh auth working [E:cmd#13])",
+    "gh_cli": "working (gh api repos/reARbitRA/KonkredDev-Android -> 200)"
+  },
+  "surface_inventory": [
+    {"name": "MainActivity (launcher)", "path_line": "app/src/main/java/com/example/MainActivity.kt:17", "auth": "n/a (local app)", "validated": "n/a", "tested": "no"},
+    {"name": "GeminiPairProgrammer.askGemini (HTTPS POST generativelanguage.googleapis.com)", "path_line": "app/src/main/java/com/example/data/api/GeminiApi.kt:21", "auth": "API key in URL query", "validated": "partial (response parsing)", "tested": "no"},
+    {"name": "Room DAOs: FileDao/SshDao/ExtensionDao", "path_line": "app/src/main/java/com/example/data/database/Daos.kt:6-62", "auth": "n/a", "validated": "n/a", "tested": "no"},
+    {"name": "HtmlPreview WebView (JS enabled, loadDataWithBaseURL)", "path_line": "app/src/main/java/com/example/ui/components/HtmlPreview.kt:11-41", "auth": "n/a", "validated": "no hardening", "tested": "no"},
+    {"name": "Simulated terminal command executor", "path_line": "app/src/main/java/com/example/ui/viewmodel/CodeEditorViewModel.kt:executeTerminalCommand", "auth": "n/a", "validated": "n/a", "tested": "no"},
+    {"name": "CodeEditorViewModel public API (~30 methods/flows)", "path_line": "app/src/main/java/com/example/ui/viewmodel/CodeEditorViewModel.kt:40-948", "auth": "n/a", "validated": "partial", "tested": "no"}
+  ],
+  "config_env_diff": {
+    "read_in_code": ["BuildConfig.GEMINI_API_KEY (GeminiApi.kt:22)", "System.getenv KEYSTORE_PATH/STORE_PASSWORD/KEY_PASSWORD (app/build.gradle.kts:25-29)"],
+    "documented": ["GEMINI_API_KEY (README.md 'Run locally', .env.example)"],
+    "provided": [".env.example: GEMINI_API_KEY=MY_GEMINI_API_KEY (placeholder only)"],
+    "diff": "KEYSTORE_PATH/STORE_PASSWORD/KEY_PASSWORD undocumented in README; no .env committed (good); debug.keystore referenced by build but gitignored and absent"
+  },
+  "mvp_definition": {
+    "product": "DevCode Editor / KONKRED Dev — Android VS Code-style code editor with Gemini AI pair programming, virtual file system, HTML live preview, simulated terminal/git/SSH/extensions/cloud-sync panels",
+    "source_of_truth": ["metadata.json:2-6", "README.md (THE EDITOR / THE AGENT / THE SIGNAL)", "app/src/main/java/com/example/data/database/AppDatabase.kt (seeded sample project)"],
+    "scope_inferred": false,
+    "scope_note": "README explicitly frames SSH/sync/git panels as concept-stage; metadata.json overclaims 'production-ready' (see F-QUAL-004)",
+    "primary_user_journeys": [
+      {"id": "J1", "actor": "Developer", "action": "Launch app", "outcome": "Sample /project seeded in Room, readme.md auto-opened in highlighted editor with line numbers"},
+      {"id": "J2", "actor": "Developer", "action": "Edit an existing file", "outcome": "Edits persist to Room; content survives file switch and app restart"},
+      {"id": "J3", "actor": "Developer", "action": "Create a new file/folder via Explorer dialog", "outcome": "Entry appears in tree; new file opens; subsequent edits persist"},
+      {"id": "J4", "actor": "Developer", "action": "Open index.html and toggle preview", "outcome": "WebView renders HTML/CSS/JS live beside editor"},
+      {"id": "J5", "actor": "Developer", "action": "Ask Gemini about the active file / run Fix-My-Code", "outcome": "Real model response appears in AI chat; optionally applied to buffer"},
+      {"id": "J6", "actor": "Developer", "action": "Global search & replace across project", "outcome": "Matches listed with file/line; replace-all persists changes"},
+      {"id": "J7", "actor": "Developer", "action": "Use terminal / git / ssh / extensions / sync panels", "outcome": "Simulated responses (by design); git panel tracks modified files and mock commits"}
+    ],
+    "in_scope": ["J1-J7 above", "debug build reproducibility from clean clone"],
+    "out_of_scope": ["Real SSH protocol implementation", "Real cloud backend", "Real git binary integration", "Multi-window/tablet-specific layouts beyond current split panes"]
+  },
+  "test_topology": {
+    "files": 4,
+    "what_they_assert": [
+      "ExampleUnitTest: assertEquals(4, 2+2) — template [E:cmd#6]",
+      "ExampleRobolectricTest: app_name string == 'DevCode Editor' [E:cmd#6]",
+      "GreetingScreenshotTest: captures a screenshot of Text('Hello Robolectric DevCode!') — no assertion [E:cmd#6]",
+      "ExampleInstrumentedTest: asserts packageName == 'com.example' — CONTRADICTS applicationId com.aistudio.devcodeeditor.vscedt [E:cmd#6][E:app/build.gradle.kts:15]"
+    ],
+    "product_logic_tests": 0,
+    "coverage_tooling": "none"
+  }
+}

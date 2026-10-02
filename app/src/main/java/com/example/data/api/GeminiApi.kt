@@ -1,5 +1,6 @@
 package com.example.data.api
 
+import android.util.Log
 import com.example.BuildConfig
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -24,7 +25,7 @@ class GeminiPairProgrammer {
             return@withContext "AI Pairing Response:\nTo connect to a live Google Gemini Instance, secure your GEMINI_API_KEY inside the Secrets Panel of AI Studio. Running local parsing instead:\n\n```js\n// Offline AI suggestion\nconsole.log(\"Happy coding!\");\n```"
         }
 
-        val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey"
+        val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
 
         // Build request body using Android native JSON
         val requestJson = JSONObject()
@@ -51,6 +52,7 @@ class GeminiPairProgrammer {
 
         val request = Request.Builder()
             .url(url)
+            .header("x-goog-api-key", apiKey)
             .post(body)
             .build()
 
@@ -79,7 +81,7 @@ class GeminiPairProgrammer {
                 "Response format was unreadable."
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("GeminiApi", "Gemini request failed", e)
             "Network error connecting to Gemini API: ${e.localizedMessage}. Verify your network connection."
         }
     }
