@@ -1,0 +1,121 @@
+{
+  "commit": "cb16706806407515b0b25cc0751b96491d10ffee",
+  "phase": "PRE-REMEDIATION ADJUDICATION",
+  "verdict": "NO-GO \u2014 BLOCKED",
+  "verdict_rule": "P_GO < 0.35 OR P0 >= 1",
+  "P_GO_raw": 0.0,
+  "P_GO": 0.0,
+  "P_NO_GO": 1.0,
+  "R_point": 49.29,
+  "grade_letter": "D",
+  "CI95": [
+    48.16,
+    51.34
+  ],
+  "R_mean": 49.74,
+  "monte_carlo": {
+    "N": 10000,
+    "seed": 424242,
+    "script": "audit/mc_sim.py",
+    "stdout": "audit/mc_out.txt",
+    "determinism_check": "PASS (two runs byte-identical, diff empty)"
+  },
+  "counts": {
+    "P0": 1,
+    "P1": 7,
+    "P2": 12,
+    "P3": 3,
+    "P3_environmental_unscored": 1
+  },
+  "journeys": {
+    "verified_working": 0,
+    "total": 7,
+    "broken": [
+      "J5"
+    ],
+    "partial": [
+      "J1",
+      "J2",
+      "J3",
+      "J4",
+      "J6",
+      "J7"
+    ]
+  },
+  "hard_gates_tripped": [
+    "P0>=1 -> P_GO capped 0.05, forced NO-GO",
+    "P1>=5 -> cap 0.35",
+    "journey J5 BROKEN -> cap 0.10"
+  ],
+  "distance_to_go": {
+    "delta_points_to_75": 25.71,
+    "sum_effort_hours_mvp_blocking": 9.0,
+    "top5_blockers": [
+      "F-EXEC-005: AI journey dead \u2014 gemini-1.5-flash retired 2025-09-24 (404 on every live call)",
+      "F-EXEC-001: no Gradle wrapper \u2014 documented ./gradlew build impossible from clean clone",
+      "F-DATA-001: new files silently never persist edits (selectFile with id=0 entity)",
+      "F-SEC-001: live API key baked into APK BuildConfig + sent in URL query",
+      "F-OPS-001: zero CI \u2014 no automated proof the tree even compiles"
+    ]
+  },
+  "audit_confidence_pct": 97.32,
+  "audit_confidence_formula": "100*(0.5*coverage_ratio + 0.3*grade_A_B_share + 0.2*spotcheck_pass_rate) = 100*(0.5*0.9714 + 0.3*0.9583 + 0.2*1.00)",
+  "coverage_ratio": {
+    "value": 0.9714,
+    "files_inspected": 34,
+    "files_relevant": 35,
+    "not_inspected": [
+      "app/src/main/res/values/colors.xml (decorative, non-code)"
+    ]
+  },
+  "grade_A_B_share": 0.9583,
+  "spotcheck_pass_rate": 1.0,
+  "POST_REMEDIATION": {
+    "head_at_post": "74f910e (9 commits ahead of origin/main cb16706)",
+    "verdict": "NO-GO \u2014 BLOCKED",
+    "verdict_rule": "P0 >= 1 (F-EXEC-005R open: remediated in code, verification UNEXECUTED \u2014 no execution venue: sandbox has no JDK/SDK/network; CI push blocked by GitHub App 'workflows' permission)",
+    "P_GO_raw": 0.0,
+    "P_GO": 0.0,
+    "P_NO_GO": 1.0,
+    "R_point": 54.05,
+    "grade_letter": "D",
+    "CI95": [
+      52.93,
+      56.66
+    ],
+    "R_mean": 54.73,
+    "counts": {
+      "P0": 1,
+      "P1": 2,
+      "P2": 11,
+      "P3": 5
+    },
+    "journeys": {
+      "verified_working": 0,
+      "total": 7,
+      "broken": [],
+      "note": "J5 no longer statically BROKEN (dead model string removed, Grade A grep); all journeys PARTIAL-unverified pending CI"
+    },
+    "hard_gates_tripped": [
+      "P0>=1 (unverified remediation) -> cap 0.05, forced NO-GO"
+    ],
+    "distance_to_go": {
+      "delta_points_to_75": 20.95,
+      "human_gated_hours": "\u224811.5h (T-004 0.5 + T-012 0.5 + T-013 3 + T-014 8* + T-015 0.5; *T-014 can be deferred with restricted-key interim)"
+    },
+    "unlock_sequence": [
+      "1) grant workflows permission + push audit/artifacts/android-ci.yml",
+      "2) CI green on assembleDebug+testDebugUnitTest (lifts D1/D2/D5/D11 caps; closes F-OPS-001; certifies T-011)",
+      "3) owner key -> live J5 verification (clears P0 F-EXEC-005R)",
+      "4) LICENSE + privacy policy",
+      "5) re-run audit/mc_sim.py -> projected R\u224880-85, P_GO>=0.6"
+    ],
+    "monte_carlo": {
+      "N": 10000,
+      "seed": 424242,
+      "script": "audit/mc_sim.py post",
+      "stdout": "audit/mc_out_post.txt",
+      "determinism": "PASS"
+    }
+  }
+}

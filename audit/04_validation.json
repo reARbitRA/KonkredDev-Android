@@ -1,0 +1,45 @@
+{
+  "validator_model": "NONE_AVAILABLE",
+  "invocation_method": "none \u2014 no sub-agent/LLM invocation tool exists in this session's toolset (observed: bash, read/write/edit_file, web_search, fetch_page, git/gh, process tools, media tools)",
+  "context_isolation": null,
+  "fallback_executed": "5.5 evidence spot-check + line-precision re-audit (per 5.1: 'do not fake it')",
+  "blind_rescore_available": false,
+  "agreement_metrics": {
+    "MAD": null,
+    "MAX_DEV": null,
+    "delta_P_GO": null,
+    "P0_JACCARD": null,
+    "HALLUC": 0,
+    "note": "not computable without a second model; NOT FABRICATED"
+  },
+  "evidence_spotcheck": {
+    "tokens_selected": 10,
+    "initial_pass": 8,
+    "initial_fail_reason": "SPOT-1 (GeminiApi.kt L29) and SPOT-3 (build.gradle.kts L15/L30-35/L44-46) cited imprecise line numbers; substantive claims true",
+    "remedy": "re-opened files, recorded exact lines in 01_findings.json:spotcheck_corrections, re-audited affected dimensions D1/D5/D9 tokens",
+    "final_pass": 10,
+    "pass_rate": 1.0
+  },
+  "iterations": 1,
+  "result": "DEGRADED \u2014 SINGLE-MODEL",
+  "stamp": "VALIDATION: DEGRADED \u2014 SINGLE-MODEL (no second model reachable; hallucination controls = 10/10 spot-check after correction, 0 fabricated validator output)",
+  "final_P_GO_pre": 0.0,
+  "mini_validation_post_delta": {
+    "trigger": "Phase 7.3 milestone gate ritual (degraded single-model mode)",
+    "tokens_rechecked": 10,
+    "tokens": [
+      "GeminiApi.kt L28 gemini-flash-latest \u2014 PASS (grep)",
+      "GeminiApi.kt L55 x-goog-api-key header \u2014 PASS (grep)",
+      "GeminiApi.kt L84 Log.e, zero printStackTrace \u2014 PASS (grep)",
+      "CodeEditorViewModel.kt L401/L405 rowId fix \u2014 PASS (grep)",
+      "Daos.kt L26 LIKE dirPath||'/%' \u2014 PASS (grep)",
+      "HtmlPreview.kt 4 hardening markers \u2014 PASS (grep -c = 4)",
+      "app/build.gradle.kts debugConfig occurrences = 0 \u2014 PASS (grep -c = 0)",
+      "gradle-wrapper.jar valid ZIP w/ GradleWrapperMain, sha256 b3a875dd... \u2014 PASS (unzip -l, sha256sum)",
+      "CodeEditorViewModelTest.kt exists with 5 @Test \u2014 PASS (grep -c = 5)",
+      "PII 'ari_eshghi' = 0 occurrences in app/src \u2014 PASS (grep exit 1)"
+    ],
+    "pass_rate": 1.0,
+    "result": "DEGRADED \u2014 SINGLE-MODEL (no second model reachable; nothing fabricated)"
+  }
+}

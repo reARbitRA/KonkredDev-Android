@@ -1,0 +1,529 @@
+{
+  "commit_base": "cb16706",
+  "milestones": {
+    "M0_unblock": {
+      "exit_gate": "P0_count==0",
+      "tasks": [
+        "T-001"
+      ]
+    },
+    "M1_derisk": {
+      "exit_gate": "P1<=2 and no journey BROKEN",
+      "tasks": [
+        "T-002",
+        "T-003",
+        "T-004",
+        "T-005",
+        "T-006",
+        "T-011"
+      ]
+    },
+    "M2_harden": {
+      "exit_gate": "R_point>=75",
+      "tasks": [
+        "T-007",
+        "T-008",
+        "T-010",
+        "T-012(human)",
+        "T-014(human)"
+      ]
+    },
+    "M3_launch": {
+      "exit_gate": "P_GO>=0.85",
+      "tasks": [
+        "T-013(human)",
+        "T-015(human)"
+      ]
+    },
+    "M4_backlog": {
+      "tasks": [
+        "T-016",
+        "T-009"
+      ]
+    }
+  },
+  "tasks": [
+    {
+      "task_id": "T-001",
+      "title": "Fix Gemini integration: supported model + x-goog-api-key header",
+      "source_findings": [
+        "F-EXEC-005",
+        "F-SEC-001"
+      ],
+      "lane": "EXEC/SEC",
+      "priority": "P0",
+      "depends_on": [],
+      "files_to_touch": [
+        "app/src/main/java/com/example/data/api/GeminiApi.kt"
+      ],
+      "change_spec": "Replace model gemini-1.5-flash with gemini-2.5-flash; move key from URL query to x-goog-api-key header; keep offline mock branch unchanged",
+      "acceptance_criteria": [
+        "GIVEN source WHEN grep THEN no 'key=' query param and no 'gemini-1.5'",
+        "CI compile of GeminiApi.kt exits 0",
+        "Robolectric test exercises offline-mock branch and asserts fallback text"
+      ],
+      "verification_command": "grep -c 'gemini-1.5\\|key=\\$apiKey' app/src/main/java/com/example/data/api/GeminiApi.kt (expect 0) + CI green",
+      "rollback": "git revert",
+      "effort_hours": 0.5,
+      "score_delta_estimate": {
+        "dimension": "D1",
+        "points": 38.5
+      },
+      "risk_of_regression": "low",
+      "requires_human": false,
+      "human_reason": null
+    },
+    {
+      "task_id": "T-002",
+      "title": "Commit Gradle wrapper pinned to Gradle 9.3.1 (AGP 9.1.1 minimum)",
+      "source_findings": [
+        "F-EXEC-001"
+      ],
+      "lane": "EXEC",
+      "priority": "P1",
+      "depends_on": [],
+      "files_to_touch": [
+        "gradlew",
+        "gradlew.bat",
+        "gradle/wrapper/gradle-wrapper.jar",
+        "gradle/wrapper/gradle-wrapper.properties"
+      ],
+      "change_spec": "Fetch official wrapper artifacts (jar+scripts) from gradle/gradle tag v9.3.1 via gh api; write properties with distributionUrl gradle-9.3.1-bin.zip",
+      "acceptance_criteria": [
+        "gradlew executable bit set",
+        "wrapper jar is a valid zip containing GradleWrapperMain",
+        "CI ./gradlew runs on GitHub runner"
+      ],
+      "verification_command": "test -x gradlew && unzip -l gradle/wrapper/gradle-wrapper.jar | grep GradleWrapperMain && CI run uses ./gradlew",
+      "rollback": "git rm wrapper files",
+      "effort_hours": 1.0,
+      "score_delta_estimate": {
+        "dimension": "D5",
+        "points": 18.0
+      },
+      "risk_of_regression": "low",
+      "requires_human": false,
+      "human_reason": null
+    },
+    {
+      "task_id": "T-003",
+      "title": "Remove broken custom debug signingConfig (use AGP default debug keystore)",
+      "source_findings": [
+        "F-EXEC-002"
+      ],
+      "lane": "EXEC",
+      "priority": "P1",
+      "depends_on": [
+        "T-002"
+      ],
+      "files_to_touch": [
+        "app/build.gradle.kts"
+      ],
+      "change_spec": "Delete debugConfig signing config and debug{signingConfig=...} so AGP auto-generates ~/.android/debug.keystore; keep release config untouched",
+      "acceptance_criteria": [
+        "CI ./gradlew assembleDebug exits 0 on clean runner"
+      ],
+      "verification_command": "CI assembleDebug success (Grade A)",
+      "rollback": "git revert",
+      "effort_hours": 0.5,
+      "score_delta_estimate": {
+        "dimension": "D5",
+        "points": 13.0
+      },
+      "risk_of_regression": "low",
+      "requires_human": false,
+      "human_reason": null
+    },
+    {
+      "task_id": "T-004",
+      "title": "Add GitHub Actions CI: build + unit tests on push/PR",
+      "source_findings": [
+        "F-OPS-001"
+      ],
+      "lane": "OPS",
+      "priority": "P1",
+      "depends_on": [
+        "T-002",
+        "T-003"
+      ],
+      "files_to_touch": [
+        ".github/workflows/android-ci.yml"
+      ],
+      "change_spec": "ubuntu-latest, JDK 17 temurin, gradle/actions/setup-gradle, run ./gradlew assembleDebug testDebugUnitTest; grant exec on gradlew",
+      "acceptance_criteria": [
+        "Workflow run on arena branch concludes success",
+        "gh run view shows both tasks exit 0"
+      ],
+      "verification_command": "gh run list/watch (Grade A)",
+      "rollback": "delete workflow",
+      "effort_hours": 2.0,
+      "score_delta_estimate": {
+        "dimension": "D5",
+        "points": 18.0
+      },
+      "risk_of_regression": "low",
+      "requires_human": false,
+      "human_reason": null
+    },
+    {
+      "task_id": "T-005",
+      "title": "Fix new-file persistence: use rowId from insertFile before selectFile",
+      "source_findings": [
+        "F-DATA-001"
+      ],
+      "lane": "DATA",
+      "priority": "P1",
+      "depends_on": [],
+      "files_to_touch": [
+        "app/src/main/java/com/example/ui/viewmodel/CodeEditorViewModel.kt"
+      ],
+      "change_spec": "val rowId = repository.insertFile(newFile); selectFile(newFile.copy(id = rowId))",
+      "acceptance_criteria": [
+        "Robolectric VM test: createNewFile -> updateCodeText -> re-read from DAO returns typed content",
+        "CI test exits 0"
+      ],
+      "verification_command": "CI testDebugUnitTest green incl. new persistence test",
+      "rollback": "git revert",
+      "effort_hours": 1.0,
+      "score_delta_estimate": {
+        "dimension": "D1",
+        "points": 13.8
+      },
+      "risk_of_regression": "low",
+      "requires_human": false,
+      "human_reason": null
+    },
+    {
+      "task_id": "T-006",
+      "title": "Harden preview WebView: no file access, navigation locked to base URL, destroy on dispose",
+      "source_findings": [
+        "F-SEC-002"
+      ],
+      "lane": "SEC",
+      "priority": "P1",
+      "depends_on": [],
+      "files_to_touch": [
+        "app/src/main/java/com/example/ui/components/HtmlPreview.kt"
+      ],
+      "change_spec": "allowFileAccess=false, allowContentAccess=false, shouldOverrideUrlLoading blocks non-localproject hosts, DisposableEffect onDestroy destroys WebView",
+      "acceptance_criteria": [
+        "grep confirms hardening flags",
+        "CI compile exits 0"
+      ],
+      "verification_command": "grep -c 'allowFileAccess = false' HtmlPreview.kt == 1 + CI green",
+      "rollback": "git revert",
+      "effort_hours": 1.5,
+      "score_delta_estimate": {
+        "dimension": "D3",
+        "points": 13.8
+      },
+      "risk_of_regression": "medium",
+      "requires_human": false,
+      "human_reason": null
+    },
+    {
+      "task_id": "T-007",
+      "title": "Scrub hardcoded personal identity (PII) from UI/mock data",
+      "source_findings": [
+        "F-SEC-003"
+      ],
+      "lane": "SEC",
+      "priority": "P2",
+      "depends_on": [],
+      "files_to_touch": [
+        "CodeEditorViewModel.kt",
+        "NewPanels.kt",
+        "AppDatabase.kt"
+      ],
+      "change_spec": "Replace ari_eshghi89@gmail.com -> dev@devcode.local; ari_eshghi@devcode-android -> dev@devcode-android; 'Author: ari_eshghi' -> 'Author: devcode'; SSH seed username -> 'devcode'",
+      "acceptance_criteria": [
+        "grep -rn ari_eshghi app/src returns 0",
+        "CI green"
+      ],
+      "verification_command": "grep -rc 'ari_eshghi' app/src | grep -v ':0' (expect empty)",
+      "rollback": "git revert",
+      "effort_hours": 0.5,
+      "score_delta_estimate": {
+        "dimension": "D3",
+        "points": 5.1
+      },
+      "risk_of_regression": "low",
+      "requires_human": false,
+      "human_reason": null
+    },
+    {
+      "task_id": "T-008",
+      "title": "Fix instrumented test package assertion + LIKE prefix delete + capped log lists + unique testTags",
+      "source_findings": [
+        "F-EXEC-004",
+        "F-DATA-003",
+        "F-RELY-002",
+        "F-QUAL-002"
+      ],
+      "lane": "QUAL/DATA",
+      "priority": "P2",
+      "depends_on": [],
+      "files_to_touch": [
+        "ExampleInstrumentedTest.kt",
+        "Daos.kt",
+        "CodeEditorViewModel.kt",
+        "CodeEditorScreen.kt"
+      ],
+      "change_spec": "assert BuildConfig.APPLICATION_ID; DELETE ... LIKE :dirPath || '/%'; cap terminal/ai lists at 500; rename tags ai_quick_fix_button / code_editor_input",
+      "acceptance_criteria": [
+        "CI compile green; grep confirms each change"
+      ],
+      "verification_command": "grep checks + CI green",
+      "rollback": "git revert",
+      "effort_hours": 1.0,
+      "score_delta_estimate": {
+        "dimension": "D4",
+        "points": 4.9
+      },
+      "risk_of_regression": "low",
+      "requires_human": false,
+      "human_reason": null
+    },
+    {
+      "task_id": "T-009",
+      "title": "Label simulated panels SIMULATED; align metadata.json with concept scope",
+      "source_findings": [
+        "F-QUAL-004"
+      ],
+      "lane": "QUAL",
+      "priority": "P3",
+      "depends_on": [],
+      "files_to_touch": [
+        "CodeEditorViewModel.kt",
+        "metadata.json",
+        "NewPanels.kt",
+        "CodeEditorScreen.kt"
+      ],
+      "change_spec": "Terminal banner + ssh/sync/git panel copy marked 'SIMULATED'; metadata description de-claim 'production-ready' features to concept",
+      "acceptance_criteria": [
+        "grep SIMULATED present; CI green"
+      ],
+      "verification_command": "grep -c SIMULATED app/src/main/java/com/example/ui/viewmodel/CodeEditorViewModel.kt >= 2",
+      "rollback": "git revert",
+      "effort_hours": 1.0,
+      "score_delta_estimate": {
+        "dimension": "D1",
+        "points": 1.4
+      },
+      "risk_of_regression": "low",
+      "requires_human": false,
+      "human_reason": null
+    },
+    {
+      "task_id": "T-010",
+      "title": "Add Log-tag error logging replacing printStackTrace/silent catches",
+      "source_findings": [
+        "F-OBS-001"
+      ],
+      "lane": "OBS",
+      "priority": "P2",
+      "depends_on": [],
+      "files_to_touch": [
+        "GeminiApi.kt",
+        "CodeEditorViewModel.kt"
+      ],
+      "change_spec": "android.util.Log.e/w with tags GeminiApi/CodeEditorVM at error paths; keep behavior identical",
+      "acceptance_criteria": [
+        "grep printStackTrace == 0 in app/src",
+        "CI green"
+      ],
+      "verification_command": "grep -rc printStackTrace app/src/main (expect 0)",
+      "rollback": "git revert",
+      "effort_hours": 1.0,
+      "score_delta_estimate": {
+        "dimension": "D7",
+        "points": 3.0
+      },
+      "risk_of_regression": "low",
+      "requires_human": false,
+      "human_reason": null
+    },
+    {
+      "task_id": "T-011",
+      "title": "Add Robolectric VM journey tests (J1 seed/select, J2 persist, J3 create-persist, J6 replace-all, J7 terminal)",
+      "source_findings": [
+        "F-QUAL-003"
+      ],
+      "lane": "QUAL",
+      "priority": "P1",
+      "depends_on": [
+        "T-005"
+      ],
+      "files_to_touch": [
+        "app/src/test/java/com/example/CodeEditorViewModelTest.kt"
+      ],
+      "change_spec": "Robolectric test constructing VM via ApplicationProvider; kotlinx-coroutines-test Main dispatcher; assert journey outcomes at VM level",
+      "acceptance_criteria": [
+        "CI testDebugUnitTest passes with >=5 new tests",
+        "Journey statuses upgrade to VERIFIED_WORKING at VM level"
+      ],
+      "verification_command": "CI green (Grade A)",
+      "rollback": "delete test file",
+      "effort_hours": 6.0,
+      "score_delta_estimate": {
+        "dimension": "D2",
+        "points": 50.0
+      },
+      "risk_of_regression": "low",
+      "requires_human": false,
+      "human_reason": null
+    },
+    {
+      "task_id": "T-012",
+      "title": "Add LICENSE",
+      "source_findings": [
+        "F-LEGAL-001"
+      ],
+      "lane": "LEGAL",
+      "priority": "P1",
+      "depends_on": [],
+      "files_to_touch": [
+        "LICENSE"
+      ],
+      "change_spec": "BLOCKED: license choice is an owner legal decision (Apache-2.0 vs MIT vs proprietary)",
+      "acceptance_criteria": [
+        "LICENSE file present with owner-chosen terms"
+      ],
+      "verification_command": "test -f LICENSE",
+      "rollback": "n/a",
+      "effort_hours": 0.5,
+      "score_delta_estimate": {
+        "dimension": "D12",
+        "points": 18.0
+      },
+      "risk_of_regression": "low",
+      "requires_human": true,
+      "human_reason": "Legal decision: which license the owner wants"
+    },
+    {
+      "task_id": "T-013",
+      "title": "Privacy policy + AI data-disclosure",
+      "source_findings": [
+        "F-LEGAL-002"
+      ],
+      "lane": "LEGAL",
+      "priority": "P2",
+      "depends_on": [],
+      "files_to_touch": [
+        "docs/PRIVACY.md",
+        "README.md"
+      ],
+      "change_spec": "BLOCKED: legal text requires owner approval; draft possible but publication is a human decision",
+      "acceptance_criteria": [
+        "Privacy policy published and linked in store listing"
+      ],
+      "verification_command": "test -f docs/PRIVACY.md (draft) \u2014 publication HUMAN",
+      "rollback": "n/a",
+      "effort_hours": 3.0,
+      "score_delta_estimate": {
+        "dimension": "D12",
+        "points": 4.9
+      },
+      "risk_of_regression": "low",
+      "requires_human": true,
+      "human_reason": "Legal review/signoff of privacy text"
+    },
+    {
+      "task_id": "T-014",
+      "title": "Backend proxy or restricted-key policy for Gemini (remove client-side secret)",
+      "source_findings": [
+        "F-SEC-001"
+      ],
+      "lane": "SEC",
+      "priority": "P1",
+      "depends_on": [
+        "T-001"
+      ],
+      "files_to_touch": [
+        "(new backend service \u2014 out of repo)"
+      ],
+      "change_spec": "BLOCKED: requires paid cloud account + product decision (proxy service) \u2014 header fix in T-001 is the achievable interim",
+      "acceptance_criteria": [
+        "APK no longer contains a billable key"
+      ],
+      "verification_command": "manual apktool inspection after backend exists",
+      "rollback": "n/a",
+      "effort_hours": 8.0,
+      "score_delta_estimate": {
+        "dimension": "D3",
+        "points": 6.0
+      },
+      "risk_of_regression": "medium",
+      "requires_human": true,
+      "human_reason": "Needs cloud account/credentials and product decision"
+    },
+    {
+      "task_id": "T-015",
+      "title": "Live-path J5 verification with real GEMINI_API_KEY",
+      "source_findings": [
+        "F-EXEC-005"
+      ],
+      "lane": "EXEC",
+      "priority": "P1",
+      "depends_on": [
+        "T-001"
+      ],
+      "files_to_touch": [
+        ".env (never committed)"
+      ],
+      "change_spec": "BLOCKED: no API key available in audit; CI cannot call paid endpoint without secret",
+      "acceptance_criteria": [
+        "Real 200 response from gemini-2.5-flash in app UI"
+      ],
+      "verification_command": "manual smoke test on device",
+      "rollback": "n/a",
+      "effort_hours": 0.5,
+      "score_delta_estimate": {
+        "dimension": "D9",
+        "points": 20.0
+      },
+      "risk_of_regression": "low",
+      "requires_human": true,
+      "human_reason": "Requires owner's GEMINI_API_KEY (paid account)"
+    },
+    {
+      "task_id": "T-016",
+      "title": "Deferred: keystroke debounce, cursor/selection preservation, god-file split, migration policy, backup rules, release docs, coverage tooling",
+      "source_findings": [
+        "F-RELY-001",
+        "F-RELY-003",
+        "F-QUAL-001",
+        "F-DATA-002",
+        "F-SEC-005",
+        "F-OPS-002"
+      ],
+      "lane": "RELY/QUAL/DATA/OPS",
+      "priority": "P2",
+      "depends_on": [
+        "T-004"
+      ],
+      "files_to_touch": [
+        "multiple"
+      ],
+      "change_spec": "M4 backlog \u2014 deferred: higher regression risk without local compile loop; scheduled after CI proves green baseline",
+      "acceptance_criteria": [
+        "separate PRs per item with tests"
+      ],
+      "verification_command": "per-item",
+      "rollback": "n/a",
+      "effort_hours": 19.0,
+      "score_delta_estimate": {
+        "dimension": "mixed",
+        "points": 8.0
+      },
+      "risk_of_regression": "medium",
+      "requires_human": false,
+      "human_reason": null
+    }
+  ],
+  "critical_path": [
+    "T-002 -> T-003 -> T-004 -> T-011 (CI-proven journey tests)",
+    "T-001 -> T-015(human)"
+  ],
+  "projected_curve": "computed in Phase 7 by re-running audit/mc_sim.py post \u2014 not hand-waved"
+}
