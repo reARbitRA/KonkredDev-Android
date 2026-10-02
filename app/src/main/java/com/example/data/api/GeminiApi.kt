@@ -25,7 +25,7 @@ class GeminiPairProgrammer {
             return@withContext "AI Pairing Response:\nTo connect to a live Google Gemini Instance, secure your GEMINI_API_KEY inside the Secrets Panel of AI Studio. Running local parsing instead:\n\n```js\n// Offline AI suggestion\nconsole.log(\"Happy coding!\");\n```"
         }
 
-        val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+        val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
 
         // Build request body using Android native JSON
         val requestJson = JSONObject()
