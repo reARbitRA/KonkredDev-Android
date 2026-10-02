@@ -46,16 +46,19 @@ fun HtmlPreview(
                 // Never allow file:// or content:// access from previewed documents
                 settings.allowFileAccess = false
                 settings.allowContentAccess = false
-                settings.allowFileAccessFromFileURLs = false
-                settings.allowUniversalAccessFromFileURLs = false
+                // Explicit setter calls: resilient to WebSettings getter availability in Kotlin property syntax
+                settings.setAllowFileAccessFromFileURLs(false)
+                settings.setAllowUniversalAccessFromFileURLs(false)
 
                 webViewClient = object : WebViewClient() {
-                    // Lock navigation to the virtual preview origin; block all external URLs
+                    // Lock navigation to the virtual preview origin; block all external URLs.
+                    // Non-null params: framework annotates these @NonNull on modern compileSdk;
+                    // a nullable override would fail to compile there.
                     override fun shouldOverrideUrlLoading(
-                        view: WebView?,
-                        request: WebResourceRequest?
+                        view: WebView,
+                        request: WebResourceRequest
                     ): Boolean {
-                        val host = request?.url?.host
+                        val host = request.url.host
                         return host != PREVIEW_HOST
                     }
                 }

@@ -106,7 +106,7 @@ class CodeEditorViewModelTest {
             runBlocking { db.fileDao().getFileByPath(path)?.content == "gamma beta gamma" }
         }
         assertTrue("replace-all did not persist", replaced)
-        assertEquals("", vm.searchQueryText.value)
+        assertTrue("search query was not cleared after replace-all", waitFor { vm.searchQueryText.value.isEmpty() })
     }
 
     @Test
