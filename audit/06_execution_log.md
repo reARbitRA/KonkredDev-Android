@@ -30,3 +30,15 @@ Recomputed scoring after execution: `python3 audit/mc_sim.py post` → R_point 4
 MILESTONE M0 CLOSED (partial): dead-model P0 code path eliminated, but **cannot be certified closed** without execution — gate stays tripped by design (no unverified P0 clearance).
 MILESTONE M1 CLOSED (partial): P1 count 7 → 2 (F-OPS-001 human-blocked, F-LEGAL-001 human); no journey statically BROKEN; 0/7 execution-verified.
 `MILESTONE M1 CLOSED (conditional) — R: 49.29→54.05 | P_GO: 0.00%→0.00% (gate-bound)`
+
+---
+
+## ADDENDUM — turn 2 (2026-10-02, post-PR)
+
+1. **Workspace rollback incident (recovered).** At turn start, local HEAD was found reverted to `cb16706` with one uncommitted modification (`app/build.gradle.kts` = duplicate of committed `163d1d8`). Verified remote intact: `git log origin/arena/01a0fb78-konkreddev-android` showed all 9 commits (`da39423..34a8f35`), remote `debugConfig` grep count 0, wrapper + audit tree present in `git ls-tree`. Confirmed the local diff duplicated committed state, then `git reset --hard origin/arena/...` (recovery of local checkout to already-pushed state; no remote history rewritten, nothing unique discarded). Upstream tracking set.
+2. **Environment re-probe:** unchanged — `java` absent (exit 1), repo.maven.apache.org `000`, services.gradle.org `000`, PR #1 OPEN with **0 status checks** (no CI in repo).
+3. **T-004 second attempt:** re-committed workflow and pushed → **same server-side rejection** ("refusing to allow a GitHub App to create or update workflow ... without `workflows` permission", push failed). Local-only commit dropped via `reset --hard` back to `34a8f35`. T-004 remains BLOCKED (requires_human, unchanged).
+4. **Docs-only mitigations executed (zero compile risk):**
+   - README: prerequisites corrected (JDK 17+, wrapper shipped, Gradle 9.3.1/AGP 9.1.1 minimum); `testDebugUnitTest` command documented; **new "Release build (signing)" section** documenting `KEYSTORE_PATH`/`STORE_PASSWORD`/`KEY_PASSWORD`, keytool generation, and the APK-embedded-key warning (doc portion of **F-OPS-002**; finding stays open — release path still unexecuted); repository map updated.
+   - `docs/PRIVACY.md`: **DRAFT** privacy & AI-data disclosure (device-only storage table; exact Gemini data flow incl. full-open-file-content disclosure; allowBackup caveat cross-ref F-SEC-005; SIMULATED panels; deletion instructions). Drafting portion of **T-013**; publication/legal approval remains HUMAN-GATED — finding F-LEGAL-002 stays open.
+5. **Scoring impact: none by design.** No dimension score changes this turn: docs do not lift execution caps (D1/D2/D5/D11) and both parent findings retain open status pending human signoff / executed verification. `audit/mc_sim.py post` output remains the authoritative post-state (R 54.05, P_GO 0.00%, gate: unverified P0).

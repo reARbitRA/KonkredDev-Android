@@ -89,9 +89,10 @@ Keep the human in the loop: inspect, build, test, and ship deliberately.
 
 ### Prerequisites
 
-- [Android Studio](https://developer.android.com/studio)
-- An Android emulator or physical device
-- A Gemini API key
+- [Android Studio](https://developer.android.com/studio) **or** a command-line toolchain: JDK 17+ and the Android SDK (compileSdk 36, Build-Tools 36.0.0)
+- No manual Gradle install needed — the repository ships the Gradle wrapper (9.3.1), the minimum required by AGP 9.1.1
+- An Android emulator or physical device (minSdk 24)
+- A Gemini API key (only for live AI pairing; the editor works offline without one)
 
 ### Run locally
 
@@ -108,11 +109,42 @@ GEMINI_API_KEY=your_gemini_api_key
 
 Open the project in Android Studio, allow Gradle sync to complete, then run the `app` configuration on an emulator or device.
 
-For a local debug build:
+For a local debug build (uses the standard auto-generated AGP debug keystore — no setup required):
 
 ```bash
 ./gradlew assembleDebug
 ```
+
+Run the JVM/Robolectric test suite:
+
+```bash
+./gradlew testDebugUnitTest
+```
+
+### Release build (signing)
+
+The `release` build type signs with an upload keystore supplied via environment variables — none of which are committed:
+
+| Env var | Purpose | Default if unset |
+|---|---|---|
+| `KEYSTORE_PATH` | Path to the upload keystore file | `${rootDir}/my-upload-key.jks` (not in repo) |
+| `STORE_PASSWORD` | Keystore password | build fails |
+| `KEY_PASSWORD` | Key password (alias must be `upload`) | build fails |
+
+Generate a keystore once (keep it and its passwords out of version control):
+
+```bash
+keytool -genkeypair -v -keystore my-upload-key.jks -alias upload \
+  -keyalg RSA -keysize 2048 -validity 10000
+```
+
+Then build:
+
+```bash
+KEYSTORE_PATH=$PWD/my-upload-key.jks STORE_PASSWORD=... KEY_PASSWORD=... ./gradlew assembleRelease
+```
+
+> Note: `GEMINI_API_KEY` from `.env` is compiled into the APK (BuildConfig). Restrict the key in Google Cloud Console to this app's package name (`com.aistudio.devcodeeditor.vscedt`) and signing certificate, and treat any key shipped in a client build as potentially extractable. A backend proxy is the recommended long-term fix (see `audit/07_final_report.md`, F-SEC-001).
 
 <img src="./assets/divider.svg" alt="" width="100%">
 
@@ -122,6 +154,10 @@ For a local debug build:
 KonkredDev-Android/
 ├── app/                 Android application module
 ├── assets/              KONKRED README artwork
+├── audit/               MVP readiness audit artifacts (reports, findings, scoring engine)
+├── docs/                Privacy disclosure (draft) and policies
+├── gradle/wrapper/      Gradle wrapper (9.3.1) + version catalog
+├── gradlew / gradlew.bat  Wrapper launch scripts
 ├── .env.example         Local secrets template
 ├── build.gradle.kts     Root Gradle configuration
 ├── settings.gradle.kts  Project settings
