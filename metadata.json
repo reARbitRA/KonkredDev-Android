@@ -1,6 +1,6 @@
 {
   "name": "DevCode Editor",
-  "description": "A production-ready code editor for tablets and mobile devices featuring VS Code-style UI, real-time Gemini AI pairing, remote SSH, syntax highlighting, offline capabilities, secure cloud sync, an integrated terminal, extension support, and HTML previews.",
+  "description": "Concept-stage code editor for tablets and mobile devices with a VS Code-style UI, Gemini AI pair programming, syntax highlighting, offline local persistence, and HTML previews. Terminal, SSH, git, extension-marketplace and cloud-sync panels are SIMULATED demos and perform no real remote operations.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

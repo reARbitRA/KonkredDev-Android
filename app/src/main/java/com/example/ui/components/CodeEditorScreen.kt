@@ -316,7 +316,7 @@ fun CodeEditorScreen(
                                 onClick = { viewModel.executeAutoLintFix() },
                                 modifier = Modifier
                                     .size(28.dp)
-                                    .testTag("submit_button")
+                                    .testTag("ai_quick_fix_button")
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Build,
@@ -1459,7 +1459,7 @@ fun CodeWorkspaceTextEditor(
                     }
                 }
                 .padding(12.dp)
-                .testTag("submit_button")
+                .testTag("code_editor_input")
         )
     }
 }
@@ -1615,7 +1615,7 @@ fun TerminalConsole(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "ari_eshghi@devcode-android:~$ ",
+                text = "dev@devcode-android:~$ ",
                 color = VsSecondaryAccent,
                 fontFamily = FontFamily.Monospace,
                 fontSize = 11.sp
@@ -1639,7 +1639,7 @@ fun TerminalConsole(
 
 private fun getTerminalLogColor(log: String): Color {
     return when {
-        log.startsWith("ari_eshghi@") -> VsAccentColor
+        log.startsWith("dev@") -> VsAccentColor
         log.startsWith("Error:") -> Color.Red
         log.startsWith("> mkdir") || log.startsWith("> ssh") -> Color(0xFF50FA7B) // Success green
         log.startsWith("  - Profile") -> VsSecondaryAccent

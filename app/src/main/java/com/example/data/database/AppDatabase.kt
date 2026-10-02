@@ -280,7 +280,7 @@ Let's begin scripting!
                     name = "AI Studio Production Node",
                     host = "ssh.aistudio.com",
                     port = 22,
-                    username = "ari_eshghi",
+                    username = "devcode",
                     rsaKey = "RSA_KEY_MOCK_STUDIO_DEVCODE_KEY_2026_PRODUCTION"
                 )
             )

@@ -73,7 +73,7 @@ class CodeEditorViewModel(application: Application) : AndroidViewModel(applicati
     // Terminal State variables
     private val _terminalLogs = MutableStateFlow<List<String>>(
         listOf(
-            "DevCode OS Built-in Terminal v5.0.0 (Windows-Compatible Android Daemon)",
+            "DevCode OS Built-in Terminal v5.0.0 [SIMULATED - no real shell is executed]",
             "System online. Offline database connected.",
             "Type 'help' to examine available actions. Use 'preview' to launch live HTML viewer."
         )
@@ -256,8 +256,8 @@ class CodeEditorViewModel(application: Application) : AndroidViewModel(applicati
 
         // Populate initial mock commit hist
         _commitLogs.value = listOf(
-            GitCommit("f4c78a1", "Initial workspace scaffold", "ari_eshghi89@gmail.com", System.currentTimeMillis() - 86400000, 3),
-            GitCommit("1a8d052", "Optimize code structure format and themes", "ari_eshghi89@gmail.com", System.currentTimeMillis() - 36000000, 2)
+            GitCommit("f4c78a1", "Initial workspace scaffold", "dev@devcode.local", System.currentTimeMillis() - 86400000, 3),
+            GitCommit("1a8d052", "Optimize code structure format and themes", "dev@devcode.local", System.currentTimeMillis() - 36000000, 2)
         )
 
         // Trigger automated checkout
@@ -398,11 +398,11 @@ class CodeEditorViewModel(application: Application) : AndroidViewModel(applicati
                 isDirectory = isFolder,
                 language = extension
             )
-            repository.insertFile(newFile)
+            val rowId = repository.insertFile(newFile)
             withContext(Dispatchers.Main) {
                 pushTerminalLog("> mkdir file: created successful asset at $path")
                 if (!isFolder) {
-                    selectFile(newFile)
+                    selectFile(newFile.copy(id = rowId))
                 }
             }
         }
@@ -420,8 +420,8 @@ class CodeEditorViewModel(application: Application) : AndroidViewModel(applicati
             _syncMessage.value = "Securing files & connection keychains... 89% cached"
             kotlinx.coroutines.delay(800)
             _isSyncing.value = false
-            _syncMessage.value = "Last synced: Successfully updated. DevCode Workspace synced safely."
-            pushTerminalLog("> git daemon: Sync complete with remote mirror repository.")
+            _syncMessage.value = "[SIMULATED] Local demo sync complete. No data left this device."
+            pushTerminalLog("> [SIMULATED] sync demo complete (no remote mirror exists).")
         }
     }
 
@@ -469,7 +469,7 @@ class CodeEditorViewModel(application: Application) : AndroidViewModel(applicati
 
         val currentDialogue = _aiDialogue.value.toMutableList()
         currentDialogue.add("Developer" to query)
-        _aiDialogue.value = currentDialogue
+        _aiDialogue.value = currentDialogue.takeLast(200)
         aiInputText.value = ""
 
         _isAiThinking.value = true
@@ -491,7 +491,7 @@ class CodeEditorViewModel(application: Application) : AndroidViewModel(applicati
             val result = pairProgrammer.askGemini(query, sysPrompt)
             val updatedDiag = _aiDialogue.value.toMutableList()
             updatedDiag.add("Gemini AI" to result)
-            _aiDialogue.value = updatedDiag
+            _aiDialogue.value = updatedDiag.takeLast(200)
             _isAiThinking.value = false
         }
     }
@@ -523,7 +523,7 @@ class CodeEditorViewModel(application: Application) : AndroidViewModel(applicati
                 pushTerminalLog("> linter optimization: AI auto-resolved syntax warnings for compiler.")
                 val updatedDiag = _aiDialogue.value.toMutableList()
                 updatedDiag.add("Gemini AI" to "I scanned the warnings in `${activeF.name}` and applied auto-formatting and tag closures. Code buffer updated!")
-                _aiDialogue.value = updatedDiag
+                _aiDialogue.value = updatedDiag.takeLast(200)
             } else {
                 // Mock recovery fixes offline fallback
                 applyLocalOfflineHotfix(activeF)
@@ -566,7 +566,7 @@ class CodeEditorViewModel(application: Application) : AndroidViewModel(applicati
         if (commandLine.isEmpty()) return
 
         val history = _terminalLogs.value.toMutableList()
-        history.add("ari_eshghi@devcode-android:~$ $commandLine")
+        history.add("dev@devcode-android:~$ $commandLine")
 
         val parts = commandLine.split(" ")
         val command = parts[0].lowercase()
@@ -626,8 +626,8 @@ class CodeEditorViewModel(application: Application) : AndroidViewModel(applicati
                         } else {
                             val host = parts[2]
                             history.add("Initiating handshakes to $host...")
-                            history.add("Connecting tunnels over terminal socket... Success.")
-                            history.add("Ssh session established with 256-bit AES encryption.")
+                            history.add("[SIMULATED] Mock tunnel established (no real SSH socket is opened).")
+                            history.add("[SIMULATED] Demo session only - no network connection was made.")
                         }
                     }
                 }
@@ -681,12 +681,12 @@ class CodeEditorViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
-        _terminalLogs.value = history
+        _terminalLogs.value = history.takeLast(500)
         terminalInput.value = ""
     }
 
     private fun pushTerminalLog(log: String) {
-        _terminalLogs.value = _terminalLogs.value.toMutableList() + log
+        _terminalLogs.value = (_terminalLogs.value + log).takeLast(500)
     }
 
     fun deleteFile(file: LocalFile) {
@@ -863,7 +863,7 @@ class CodeEditorViewModel(application: Application) : AndroidViewModel(applicati
             val newCommit = GitCommit(
                 hash = hash,
                 message = message,
-                author = "ari_eshghi89@gmail.com",
+                author = "dev@devcode.local",
                 timestamp = System.currentTimeMillis(),
                 filesCount = changed.size
             )

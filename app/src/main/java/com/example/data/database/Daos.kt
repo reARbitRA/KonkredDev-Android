@@ -23,7 +23,7 @@ interface FileDao {
     @Delete
     suspend fun deleteFile(file: LocalFile)
 
-    @Query("DELETE FROM local_files WHERE path LIKE :dirPath || '%'")
+    @Query("DELETE FROM local_files WHERE path LIKE :dirPath || '/%'")
     suspend fun deleteDirectoryAndChildren(dirPath: String)
 
     @Query("SELECT COUNT(*) FROM local_files")
